@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>SMA Builders & Real Estates – Nellore | Plots, Houses, Flats</title>
+<meta name="description" content="SMA Builders & Real Estates – Buy plots, layouts, houses, flats & agricultural land in Nellore, Andhra Pradesh. Contact Sk. Ahamad: 7396979572 | Sk. Umar: 8886021688">
+<meta name="keywords" content="real estate nellore, plots nellore, houses nellore, flats nellore, agricultural land nellore, SMA builders, layouts nellore, DTCP approved plots nellore">
+<meta name="author" content="SMA Builders & Real Estates, Nellore">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="SMA Builders & Real Estates – Nellore">
+<meta property="og:description" content="Buy plots, houses, flats & agricultural land in Nellore, AP. Best prices guaranteed. Call: 7396979572">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://smaproperties.com">
+<meta property="og:locale" content="en_IN">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+<link rel="canonical" href="https://smaproperties.com">
+
+<!-- ═══════════════════════════════════════════
+  GOOGLE ANALYTICS – STEP 3
+  Replace G-XXXXXXXXXX with your Measurement ID
+  Get it from: analytics.google.com → Admin → Data Streams
+════════════════════════════════════════════ -->
+<!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script> -->
+
+<!-- Firebase SDK -->
+<script type="module">
+/* ═══════════════════════════════════════════════════════════
+   FIREBASE SETUP – STEP 2
+   
+   HOW TO GET YOUR CONFIG:
+   1. Go to https://console.firebase.google.com
+   2. Click "Add project" → name it "sma-builders" → Create
+   3. Click the </> (Web) icon to add a web app
+   4. Register app name: "SMA Website" → Register App
+   5. Copy the firebaseConfig object shown and paste it below
+   6. Then: Build → Realtime Database → Create database
+      → Start in TEST MODE → Enable
+   7. Copy the databaseURL (looks like: https://sma-builders-default-rtdb.firebaseio.com)
+      and paste it as databaseURL below
+   
+   COST: 100% FREE for your website size (Firebase free tier)
+═══════════════════════════════════════════════════════════ */
+
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, set, get, onValue, push, serverTimestamp }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+// ↓↓↓ PASTE YOUR FIREBASE CONFIG HERE ↓↓↓
+const firebaseConfig = {
+  apiKey:            "PASTE_YOUR_apiKey_HERE",
+  authDomain:        "PASTE_YOUR_authDomain_HERE",
+  databaseURL:       "PASTE_YOUR_databaseURL_HERE",
+  projectId:         "PASTE_YOUR_projectId_HERE",
+  storageBucket:     "PASTE_YOUR_storageBucket_HERE",
+  messagingSenderId: "PASTE_YOUR_messagingSenderId_HERE",
+  appId:             "PASTE_YOUR_appId_HERE"
+};
+// ↑↑↑ PASTE YOUR FIREBASE CONFIG HERE ↑↑↑
+
+// Check if user has filled in Firebase config
+const FB_CONFIGURED = !firebaseConfig.apiKey.includes('PASTE_YOUR');
+
+let db = null;
+let fbReady = false;
+
+if (FB_CONFIGURED) {
+  try {
+    const app = initializeApp(firebaseConfig);
+    db = getDatabase(app);
+    fbReady = true;
+    window._fbDB = db;
+    window._fbReady = true;
+    window._fbRef = ref;
+    window._fbSet = set;
+    window._fbGet = get;
+    window._fbOnValue = onValue;
+    window._fbPush = push;
+    window._fbServerTimestamp = serverTimestamp;
+    console.log('✅ Firebase connected!');
+    // Load properties from Firebase on start
+    window.addEventListener('DOMContentLoaded', () => {
+      loadFromFirebase();
+      trackVisitFirebase();
+    });
+  } catch(e) {
+    console.warn('Firebase error:', e.message);
+    window._fbReady = false;
+  }
+} else {
+  window._fbReady = false;
+  console.info('ℹ️ Firebase not configured yet. Using local storage.');
+}
+
+async function loadFromFirebase() {
+  if (!window._fbReady) return;
+  try {
+    const snap = await window._fbGet(window._fbRef(window._fbDB, 'properties'));
+    if (snap.exists()) {
+      const data = snap.val();
+      const props = Object.keys(data).map(k => ({ ...data[k], _fbKey: k }));
+      if (props.length > 0) {
+        localStorage.setItem('sma_v5', JSON.stringify(props));
+        if (typeof renderCards === 'function') renderCards();
+      }
+    }
+  } catch(e) { console.warn('Firebase read error:', e); }
+}
+
+async function trackVisitFirebase() {
+  if (!window._fbReady) return;
+  try {
+    const visitRef = window._fbRef(window._fbDB, 'visitors');
+    await window._fbPush(visitRef, {
+      time: new Date().toISOString(),
+      date: new Date().toLocaleDateString('en-IN'),
+      page: window.location.pathname,
+      ref: document.referrer || 'direct',
+      ua: navigator.userAgent.substring(0, 80)
+    });
+  } catch(e) {}
+}
+
+window._savePropsToFirebase = async function(props) {
+  if (!window._fbReady) return false;
+  try {
+    const clean = props.map(p => {
+      const cp = {...p};
+      // Remove base64 images from Firebase (too large) — keep only URLs
+      if (cp.pics) {
+        cp.pics = cp.pics.filter(pic => pic.startsWith('http'));
+      }
+      delete cp._fbKey;
+      return cp;
+    });
+    const obj = {};
+    clean.forEach(p => { obj[p.id] = p; });
+    await window._fbSet(window._fbRef(window._fbDB, 'properties'), obj);
+    return true;
+  } catch(e) { console.warn('Firebase write error:', e); return false; }
+};
+
+window._getVisitorStatsFirebase = async function() {
+  if (!window._fbReady) return null;
+  try {
+    const snap = await window._fbGet(window._fbRef(window._fbDB, 'visitors'));
+    if (!snap.exists()) return { total: 0, today: 0, week: 0, month: 0, recent: [] };
+    const data = snap.val();
+    const visits = Object.values(data);
+    const now = new Date();
+    const todayStr = now.toISOString().slice(0, 10);
+    const weekAgo = new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10);
+    const monthAgo = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
+    return {
+      total: visits.length,
+      today: visits.filter(v => v.date === todayStr).length,
+      week: visits.filter(v => v.time >= weekAgo).length,
+      month: visits.filter(v => v.time >= monthAgo).length,
+      recent: visits.sort((a,b) => b.time.localeCompare(a.time)).slice(0, 10)
+    };
+  } catch(e) { return null; }
+};
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0F2342; --navy2:#1A3A5C; --navy3:#0A1A30;
+  --amber:#E8A020; --amber2:#F5B942; --amber3:#C8860A;
+  --teal:#0D7377; --teal2:#14919B;
+  --cream:#F8F4EE; --white:#FFFFFF; --dark:#111827;
+  --gray:#6B7280; --lgray:#F3F4F6; --border:#E5E7EB;
+  --green:#16A34A; --glight:#DCFCE7;
+  --wa:#25D366; --wad:#128C7E; --red:#DC2626;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter',sans-serif;background:var(--cream);color:var(--dark);overflow-x:hidden;-webkit-tap-highlight-color:transparent;}
+img{max-width:100%;height:auto;}
+a{text-decoration:none;}
+
+/* ── Firebase Status Banner ── */
+#fb-banner{display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;
+  padding:10px 20px;text-align:center;font-size:.8rem;font-weight:600;
+  background:#FEF3C7;color:#92400E;border-top:2px solid #F59E0B;}
+#fb-banner.fb-ok{background:#DCFCE7;color:#166534;border-color:#22C55E;display:block;}
+#fb-banner.fb-warn{background:#FEF3C7;color:#92400E;border-color:#F59E0B;display:block;}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;
+  background:rgba(15,35,66,.97);backdrop-filter:blur(14px);
+  height:64px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 clamp(1rem,5%,4rem);box-shadow:0 2px 24px rgba(0,0,0,.4);}
+.logo{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:900;color:#fff;flex-shrink:0;}
+.logo span{color:var(--amber2);}
+.nav-center{display:flex;gap:1.5rem;list-style:none;align-items:center;}
+.nav-center a{color:rgba(255,255,255,.8);font-size:.84rem;font-weight:500;transition:color .2s;white-space:nowrap;}
+.nav-center a:hover{color:var(--amber2);}
+.nav-right{display:flex;align-items:center;gap:.8rem;flex-shrink:0;}
+.lang-wrap{position:relative;}
+.lang-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;
+  padding:5px 12px;border-radius:20px;font-size:.78rem;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;gap:5px;transition:background .2s;white-space:nowrap;}
+.lang-btn:hover{background:rgba(255,255,255,.22);}
+.lang-dropdown{display:none;position:absolute;top:calc(100% + 8px);right:0;
+  background:#fff;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.2);
+  padding:.4rem;min-width:140px;z-index:100;}
+.lang-dropdown.open{display:block;}
+.lang-option{display:flex;align-items:center;gap:.6rem;padding:.55rem .8rem;border-radius:7px;
+  cursor:pointer;font-size:.84rem;font-weight:500;color:var(--dark);transition:background .15s;}
+.lang-option:hover{background:var(--lgray);}
+.lang-option.active{background:var(--navy);color:#fff;}
+.nav-cta{background:var(--amber);color:var(--dark);padding:7px 16px;border-radius:6px;
+  font-size:.82rem;font-weight:700;white-space:nowrap;transition:background .2s;}
+.nav-cta:hover{background:var(--amber2);}
+.nav-adm{color:var(--amber2)!important;font-size:.74rem!important;}
+.hbg{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:6px;}
+.hbg span{width:22px;height:2px;background:#fff;display:block;border-radius:2px;}
+
+/* ── Mobile Menu ── */
+.mob-menu{display:none;position:fixed;top:64px;left:0;right:0;background:var(--navy3);
+  z-index:999;flex-direction:column;padding:.8rem 1.2rem;gap:.2rem;
+  box-shadow:0 6px 24px rgba(0,0,0,.4);max-height:calc(100vh - 64px);overflow-y:auto;}
+.mob-menu.open{display:flex;}
+.mob-menu a{color:rgba(255,255,255,.9);font-size:.95rem;font-weight:500;padding:.75rem .5rem;
+  border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:.6rem;}
+.mob-menu a:hover{color:var(--amber2);}
+.mob-lang{display:flex;flex-wrap:wrap;gap:.5rem;padding:.8rem .5rem .4rem;}
+.mob-lang-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+  color:#fff;padding:6px 14px;border-radius:20px;font-size:.8rem;font-weight:600;cursor:pointer;}
+.mob-lang-btn.active{background:var(--amber);color:var(--dark);}
+
+/* ── Hero ── */
+.hero{min-height:100vh;min-height:100dvh;
+  background:linear-gradient(150deg,var(--navy3) 0%,var(--navy) 40%,var(--navy2) 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:clamp(80px,12vh,110px) clamp(1rem,6%,4rem) clamp(40px,6vh,70px);
+  position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 40%,rgba(232,160,32,.08) 0%,transparent 70%);}
+.hero::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:60px;
+  background:linear-gradient(transparent,var(--cream));}
+.hbadge{background:rgba(232,160,32,.18);border:1px solid rgba(232,160,32,.4);
+  color:var(--amber2);padding:6px 20px;border-radius:30px;font-size:.74rem;font-weight:700;
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:1.3rem;
+  display:inline-flex;align-items:center;gap:.5rem;animation:riseUp .8s ease both;}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,6vw,4.8rem);
+  font-weight:900;color:#fff;line-height:1.08;animation:riseUp .9s .1s ease both;}
+.hero h1 span{color:var(--amber2);display:block;}
+.hero-sub{font-size:clamp(.88rem,1.8vw,1rem);color:rgba(255,255,255,.7);
+  margin:1rem 0 .35rem;animation:riseUp 1s .18s ease both;line-height:1.6;}
+.hero-tel{font-size:clamp(.9rem,2vw,1.05rem);color:rgba(255,255,255,.88);
+  margin-bottom:1.8rem;animation:riseUp 1s .24s ease both;}
+.hero-btns{display:flex;gap:.85rem;flex-wrap:wrap;justify-content:center;animation:riseUp 1s .3s ease both;}
+.btn-amber{background:var(--amber);color:var(--dark);padding:12px 26px;border-radius:7px;
+  font-weight:700;font-size:.9rem;display:inline-flex;align-items:center;gap:7px;
+  transition:all .22s;box-shadow:0 4px 18px rgba(232,160,32,.4);}
+.btn-amber:hover{background:var(--amber2);transform:translateY(-2px);}
+.btn-ghost{border:2px solid rgba(255,255,255,.45);color:#fff;padding:12px 26px;border-radius:7px;
+  font-weight:600;font-size:.9rem;display:inline-flex;align-items:center;gap:7px;transition:all .22s;}
+.btn-ghost:hover{border-color:#fff;background:rgba(255,255,255,.1);}
+.hero-stats{display:flex;gap:clamp(1.2rem,3vw,2.5rem);margin-top:2.6rem;
+  flex-wrap:wrap;justify-content:center;animation:riseUp 1s .38s ease both;}
+.stat-n{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,4vw,2rem);font-weight:900;color:var(--amber2);}
+.stat-l{font-size:.7rem;color:rgba(255,255,255,.58);letter-spacing:.8px;margin-top:2px;text-transform:uppercase;}
+.hero-chips{display:flex;gap:.65rem;margin-top:1.8rem;flex-wrap:wrap;
+  justify-content:center;animation:riseUp 1s .46s ease both;}
+.hchip{background:rgba(255,255,255,.08);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.16);border-radius:8px;padding:8px 15px;
+  color:rgba(255,255,255,.88);font-size:.8rem;font-weight:500;}
+
+/* ── Sections ── */
+section{padding:clamp(50px,8vw,88px) clamp(1rem,5%,4rem);}
+.sec-tag{display:inline-block;font-size:.69rem;font-weight:700;letter-spacing:3px;
+  text-transform:uppercase;color:var(--teal);margin-bottom:.4rem;}
+.sec-title{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,3.5vw,2.5rem);
+  font-weight:900;color:var(--dark);margin-bottom:.45rem;line-height:1.15;}
+.sec-sub{font-size:.89rem;color:var(--gray);margin-bottom:2.4rem;max-width:480px;line-height:1.65;}
+
+/* ── Property Cards ── */
+#properties{background:#fff;}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr));gap:1.3rem;}
+.pcard{background:#fff;border-radius:14px;overflow:hidden;border:1px solid var(--border);cursor:pointer;
+  transition:transform .35s,box-shadow .35s,opacity .5s;opacity:0;transform:translateY(22px);
+  box-shadow:0 2px 12px rgba(0,0,0,.06);}
+.pcard.vis{opacity:1;transform:translateY(0);}
+.pcard:hover{transform:translateY(-7px)!important;box-shadow:0 18px 42px rgba(0,0,0,.14);}
+.pthumb{height:195px;display:flex;align-items:center;justify-content:center;
+  font-size:3.4rem;position:relative;overflow:hidden;background:#e8e8e8;}
+.pthumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .4s;}
+.pcard:hover .pthumb img{transform:scale(1.06);}
+.ef{position:relative;z-index:1;}
+.pbadge{position:absolute;top:10px;left:10px;z-index:2;padding:3px 10px;
+  border-radius:20px;font-size:.66rem;font-weight:700;letter-spacing:.8px;}
+.pbadge.hot{background:#E65100;color:#fff;} .pbadge.new-tag{background:var(--navy);color:#fff;}
+.pbadge.ready{background:var(--green);color:#fff;} .pbadge.def{background:var(--teal);color:#fff;}
+.pbody{padding:1.15rem 1.2rem;}
+.ptype{font-size:.67rem;color:var(--teal);font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+.pname{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;margin:4px 0 3px;line-height:1.3;color:var(--dark);}
+.paddr{font-size:.77rem;color:var(--gray);margin-bottom:.65rem;line-height:1.45;display:flex;gap:4px;align-items:flex-start;}
+.ptags{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.9rem;}
+.ptag{font-size:.69rem;background:var(--lgray);border:1px solid var(--border);border-radius:20px;padding:2px 9px;color:var(--gray);}
+.pfoot{display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;}
+.avpill{font-size:.73rem;color:var(--green);font-weight:700;background:var(--glight);
+  padding:4px 10px;border-radius:20px;display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.vbtn{background:var(--navy);color:#fff;border:none;padding:9px 17px;border-radius:7px;
+  font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:background .2s;}
+.vbtn:hover{background:var(--navy2);}
+.loading-cards{text-align:center;padding:3rem;color:var(--gray);font-size:.9rem;}
+.loading-spinner{display:inline-block;width:32px;height:32px;border:3px solid var(--border);
+  border-top-color:var(--navy);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:.8rem;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── About ── */
+#about{background:var(--cream);}
+.about-wrap{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;}
+.about-img-box{border-radius:18px;overflow:hidden;position:relative;height:340px;
+  background:linear-gradient(135deg,var(--navy3),var(--navy2));}
+.about-img-box img{width:100%;height:100%;object-fit:cover;opacity:.88;}
+.about-badge{position:absolute;bottom:18px;left:18px;background:var(--amber);color:var(--dark);
+  padding:8px 18px;border-radius:30px;font-weight:700;font-size:.82rem;}
+.about-stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin:1.4rem 0;}
+.about-stat{background:#fff;border:1px solid var(--border);border-radius:12px;padding:1rem;text-align:center;}
+.about-stat-n{font-family:'Playfair Display',serif;font-size:1.55rem;font-weight:900;color:var(--navy);}
+.about-stat-l{font-size:.68rem;color:var(--gray);font-weight:600;text-transform:uppercase;margin-top:2px;}
+.about-points{list-style:none;display:flex;flex-direction:column;gap:.65rem;}
+.about-points li{display:flex;align-items:flex-start;gap:.7rem;font-size:.87rem;color:var(--dark);line-height:1.5;}
+
+/* ── Testimonials ── */
+#testimonials{background:var(--lgray);}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(270px,100%),1fr));gap:1.3rem;}
+.tcard{background:#fff;border:1px solid var(--border);border-radius:14px;padding:1.4rem 1.5rem;
+  position:relative;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.tcard::before{content:'❝';font-size:3rem;color:var(--amber2);opacity:.3;
+  position:absolute;top:8px;right:16px;font-family:serif;line-height:1;}
+.t-stars{color:#F59E0B;font-size:1rem;margin-bottom:.7rem;letter-spacing:3px;}
+.t-text{font-size:.87rem;color:var(--dark);line-height:1.75;margin-bottom:1.1rem;}
+.t-auth{display:flex;align-items:center;gap:.7rem;}
+.t-ava{width:40px;height:40px;border-radius:50%;background:var(--navy);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;flex-shrink:0;}
+.t-name{font-weight:700;font-size:.85rem;color:var(--dark);}
+.t-loc{font-size:.74rem;color:var(--gray);margin-top:1px;}
+
+/* ── Gallery ── */
+#gallery{background:var(--lgray);}
+.gg{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;}
+.gi{border-radius:12px;overflow:hidden;height:175px;position:relative;cursor:pointer;}
+.gi img{width:100%;height:100%;object-fit:cover;transition:transform .4s;display:block;}
+.gi:hover img{transform:scale(1.07);}
+.gi:nth-child(1){grid-column:span 2;} .gi:nth-child(5){grid-column:span 2;}
+.glbl{position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(transparent,rgba(0,0,0,.65));
+  color:#fff;font-size:.77rem;font-weight:600;padding:18px 10px 8px;}
+
+/* ── Contact ── */
+#contact{background:#fff;}
+.cwrap{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start;}
+.cinfo-title{font-family:'Playfair Display',serif;font-size:1.42rem;font-weight:900;margin-bottom:1.2rem;}
+.crow{display:flex;align-items:flex-start;gap:.85rem;margin-bottom:1.2rem;}
+.cico{width:40px;height:40px;min-width:40px;border-radius:9px;background:var(--navy);
+  color:#fff;display:flex;align-items:center;justify-content:center;font-size:.9rem;}
+.ctxt strong{display:block;font-weight:600;font-size:.85rem;margin-bottom:2px;}
+.ctxt span{font-size:.79rem;color:var(--gray);line-height:1.5;}
+.asec{background:var(--lgray);border-radius:12px;padding:1rem 1.1rem;margin-bottom:.9rem;border:1px solid var(--border);}
+.albl{font-size:.67rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--teal);margin-bottom:.65rem;}
+.aname{font-weight:700;font-size:.95rem;margin-bottom:.6rem;}
+.abtns{display:flex;flex-wrap:wrap;gap:.45rem;}
+.awa{background:var(--wa);color:#fff;padding:8px 13px;border-radius:7px;font-size:.77rem;
+  font-weight:700;display:inline-flex;align-items:center;gap:5px;transition:background .2s;}
+.awa:hover{background:var(--wad);}
+.acall{color:#fff;padding:8px 13px;border-radius:7px;font-size:.77rem;font-weight:700;
+  display:inline-flex;align-items:center;gap:5px;}
+.ac1{background:var(--navy);} .ac2{background:#1565C0;} .ac3{background:#5D4037;}
+.cform{background:var(--lgray);border-radius:14px;padding:1.7rem;border:1px solid var(--border);}
+.cform-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;margin-bottom:1.2rem;}
+.fg{margin-bottom:.9rem;}
+.fg label{display:block;font-size:.77rem;font-weight:600;margin-bottom:4px;}
+.fg input,.fg select,.fg textarea{width:100%;padding:10px 12px;border:1.5px solid var(--border);
+  border-radius:8px;font-family:'Inter',sans-serif;font-size:.86rem;background:#fff;
+  outline:none;transition:border .2s;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--navy);}
+.fg textarea{resize:vertical;min-height:82px;}
+.fsub{width:100%;padding:12px;background:var(--navy);color:#fff;border:none;border-radius:8px;
+  font-family:'Inter',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;
+  transition:background .2s;display:flex;align-items:center;justify-content:center;gap:7px;}
+.fsub:hover{background:var(--navy2);}
+.fok{display:none;background:var(--glight);border:1px solid #86EFAC;border-radius:8px;
+  padding:9px 13px;margin-top:.7rem;color:var(--green);font-size:.82rem;font-weight:500;text-align:center;}
+
+/* ── Footer ── */
+footer{background:var(--navy3);color:rgba(255,255,255,.65);text-align:center;
+  padding:2.2rem clamp(1rem,5%,4rem);font-size:.81rem;line-height:1.9;}
+footer strong{color:var(--amber2);}
+
+/* ── Floats ── */
+.floats{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:9px;z-index:998;}
+.fb{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:1.3rem;box-shadow:0 4px 18px rgba(0,0,0,.3);transition:transform .22s;}
+.fb:hover{transform:scale(1.13);}
+.fb-wa{background:var(--wa);} .fb-c{background:var(--navy);}
+
+/* ── Modal ── */
+.overlay{display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.7);
+  backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:12px;}
+.overlay.open{display:flex;}
+.modal{background:#fff;border-radius:18px;width:100%;max-width:540px;
+  max-height:94vh;overflow-y:auto;position:relative;animation:riseUp .3s ease;
+  scrollbar-width:thin;scrollbar-color:#ddd transparent;}
+.mhead{background:linear-gradient(135deg,var(--navy3),var(--navy2));padding:1.3rem 1.5rem 1.2rem;
+  border-radius:18px 18px 0 0;position:sticky;top:0;z-index:10;}
+.mhead h2{font-family:'Playfair Display',serif;font-size:1.22rem;color:#fff;font-weight:900;padding-right:2rem;}
+.mhead p{font-size:.79rem;color:rgba(255,255,255,.75);margin-top:3px;}
+.mcls{position:absolute;top:11px;right:12px;background:rgba(255,255,255,.18);
+  border:none;color:#fff;width:28px;height:28px;border-radius:50%;font-size:.9rem;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.mbody{padding:1.3rem 1.5rem 1.6rem;}
+.sldr{position:relative;border-radius:12px;overflow:hidden;height:215px;background:#f0ece6;margin-bottom:1.2rem;}
+.sldr img{width:100%;height:100%;object-fit:cover;display:block;}
+.noph{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;}
+.noph span:first-child{font-size:2.8rem;}
+.noph span:last-child{font-size:.77rem;color:#bbb;text-align:center;padding:0 1rem;}
+.snav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.45);color:#fff;
+  border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1.1rem;
+  display:flex;align-items:center;justify-content:center;z-index:5;}
+.sp{left:8px;} .sn2{right:8px;}
+.sdots{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:5;}
+.sd{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.5);cursor:pointer;}
+.sd.on{background:#fff;}
+.scnt{position:absolute;top:8px;right:10px;background:rgba(0,0,0,.5);color:#fff;
+  font-size:.69rem;padding:2px 8px;border-radius:12px;z-index:5;}
+.dgrid{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.2rem;}
+.drow{display:flex;align-items:flex-start;gap:.75rem;background:var(--lgray);border-radius:8px;padding:.6rem .85rem;}
+.dico{font-size:1rem;flex-shrink:0;margin-top:1px;}
+.dbdy strong{display:block;font-size:.67rem;color:var(--gray);font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+.dbdy span{font-size:.87rem;color:var(--dark);line-height:1.4;}
+.malbl{font-size:.67rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--teal);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem;}
+.malbl::after{content:'';flex:1;height:1px;background:var(--border);}
+.magt{border:1px solid var(--border);border-radius:10px;padding:.85rem 1rem;margin-bottom:.7rem;background:var(--lgray);}
+.magn{font-weight:700;font-size:.9rem;margin-bottom:.55rem;}
+.magb{display:flex;flex-wrap:wrap;gap:.45rem;}
+.mwa{background:var(--wa);color:#fff;padding:7px 13px;border-radius:7px;font-size:.76rem;
+  font-weight:700;display:inline-flex;align-items:center;gap:4px;transition:background .2s;}
+.mwa:hover{background:var(--wad);}
+.mc{color:#fff;padding:7px 13px;border-radius:7px;font-size:.76rem;font-weight:700;
+  display:inline-flex;align-items:center;gap:4px;}
+.mc1{background:var(--navy);} .mc2{background:#1565C0;} .mc3{background:#5D4037;}
+.qenq{background:linear-gradient(135deg,#EFF6FF,#F0FDF4);border:1px solid #BFDBFE;
+  border-radius:12px;padding:1.1rem 1.2rem;margin-top:1rem;}
+.qenq h4{font-size:.84rem;font-weight:700;margin-bottom:.8rem;}
+.qi{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;
+  font-family:'Inter',sans-serif;font-size:.85rem;outline:none;margin-bottom:.6rem;background:#fff;}
+.qi:focus{border-color:var(--navy);}
+.qb{width:100%;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:7px;
+  font-family:'Inter',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:6px;}
+.qb:hover{background:var(--navy2);}
+.qok{display:none;background:var(--glight);border:1px solid #86EFAC;border-radius:7px;
+  padding:9px 12px;margin-top:.6rem;color:var(--green);font-size:.81rem;font-weight:500;text-align:center;}
+
+/* ── Admin ── */
+.adm-wrap{display:none;min-height:100vh;padding-top:64px;}
+.adm-wrap.open{display:block;}
+.sw.hidden{display:none;}
+.atop{background:var(--navy3);color:#fff;padding:.7rem clamp(1rem,5%,4rem);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.6rem;}
+.atop strong{font-size:.92rem;}
+.atop button{background:var(--amber);color:var(--dark);border:none;padding:6px 16px;
+  border-radius:6px;font-weight:700;cursor:pointer;font-size:.81rem;}
+.ain{max-width:960px;margin:auto;padding:2rem clamp(1rem,5%,4rem);}
+.ain h2{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:900;margin-bottom:.4rem;}
+.ain .sub{font-size:.83rem;color:var(--gray);margin-bottom:1.4rem;}
+
+/* Firebase Setup Card */
+.fb-setup{background:linear-gradient(135deg,#FFF7ED,#FFFBEB);border:2px solid var(--amber);
+  border-radius:14px;padding:1.5rem;margin-bottom:1.5rem;}
+.fb-setup h3{font-size:1rem;font-weight:700;color:var(--dark);margin-bottom:.3rem;display:flex;align-items:center;gap:.5rem;}
+.fb-setup-status{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;}
+.fb-setup-status.ok{background:var(--glight);color:var(--green);}
+.fb-setup-status.warn{background:#FEF3C7;color:#92400E;}
+.fb-steps{margin-top:1rem;display:flex;flex-direction:column;gap:.7rem;}
+.fb-step{display:flex;gap:.8rem;align-items:flex-start;}
+.fb-step-num{width:26px;height:26px;border-radius:50%;background:var(--navy);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;margin-top:1px;}
+.fb-step-txt{font-size:.84rem;color:var(--dark);line-height:1.6;}
+.fb-step-txt a{color:var(--teal);font-weight:600;}
+.fb-step-txt code{background:var(--lgray);padding:1px 6px;border-radius:4px;font-size:.78rem;font-family:monospace;}
+
+/* Visitor Stats */
+.vctr{background:linear-gradient(135deg,var(--navy3),var(--navy2));border-radius:14px;padding:1.4rem 1.6rem;margin-bottom:1.6rem;}
+.vctr-title{font-size:.82rem;font-weight:700;color:var(--amber2);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:1.1rem;}
+.vctr-source{font-size:.74rem;color:rgba(255,255,255,.45);margin-bottom:1rem;font-style:italic;}
+.vstats{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:.8rem;margin-bottom:1.2rem;}
+.vst{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:.9rem 1rem;text-align:center;}
+.vst-n{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:900;color:var(--amber2);}
+.vst-l{font-size:.67rem;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.8px;margin-top:3px;}
+.vrecent-title{font-size:.74rem;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:.6rem;}
+.vrow{background:rgba(255,255,255,.07);border-radius:7px;padding:.5rem .85rem;margin-bottom:.35rem;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.3rem;}
+.vrow-info{font-size:.78rem;color:rgba(255,255,255,.82);}
+.vrow-time{font-size:.71rem;color:rgba(255,255,255,.4);}
+.vreset{margin-top:.9rem;background:rgba(220,38,38,.25);border:1px solid rgba(220,38,38,.4);
+  color:#fca5a5;padding:6px 14px;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;}
+
+/* Vercel Deploy Guide */
+.deploy-guide{background:linear-gradient(135deg,#EFF6FF,#F0F9FF);border:1px solid #BFDBFE;
+  border-radius:14px;padding:1.5rem;margin-bottom:1.5rem;}
+.deploy-guide h3{font-size:1rem;font-weight:700;color:var(--dark);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
+.dstep{display:flex;gap:.8rem;align-items:flex-start;margin-bottom:.85rem;}
+.dstep-num{width:28px;height:28px;border-radius:50%;background:#1D4ED8;color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;margin-top:1px;}
+.dstep-txt{font-size:.84rem;color:var(--dark);line-height:1.65;}
+.dstep-txt strong{display:block;margin-bottom:2px;}
+.dstep-txt a{color:#1D4ED8;font-weight:600;}
+.dstep-txt code{background:#DBEAFE;padding:1px 6px;border-radius:4px;font-size:.78rem;font-family:monospace;color:#1E3A8A;}
+
+/* Godaddy DNS Guide */
+.dns-guide{background:linear-gradient(135deg,#F0FDF4,#ECFDF5);border:1px solid #86EFAC;
+  border-radius:14px;padding:1.5rem;margin-bottom:1.5rem;}
+.dns-guide h3{font-size:1rem;font-weight:700;color:var(--dark);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;}
+.dns-table{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:.8rem;}
+.dns-table th{background:var(--navy);color:#fff;padding:7px 10px;text-align:left;font-size:.72rem;letter-spacing:.5px;}
+.dns-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-family:monospace;}
+.dns-table tr:last-child td{border-bottom:none;}
+
+.addbtn{background:var(--amber);color:var(--dark);border:none;padding:10px 20px;
+  border-radius:7px;font-weight:700;font-size:.86rem;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;margin-bottom:1.3rem;}
+.ptabs{display:flex;flex-wrap:wrap;gap:.55rem;margin-bottom:1.4rem;}
+.ptab{padding:7px 15px;border-radius:7px;border:2px solid var(--navy);background:#fff;
+  color:var(--navy);font-weight:700;font-size:.78rem;cursor:pointer;transition:all .2s;}
+.ptab:hover,.ptab.on{background:var(--navy);color:#fff;}
+.apanel{background:var(--lgray);border-radius:14px;padding:1.5rem;display:none;border:1px solid var(--border);}
+.apanel.open{display:block;}
+.ptitle{font-weight:700;font-size:.98rem;color:var(--navy);margin-bottom:1.1rem;}
+.eform{display:flex;flex-direction:column;gap:.8rem;margin-bottom:1.2rem;}
+.eform label{font-size:.75rem;font-weight:600;color:var(--gray);display:block;margin-bottom:3px;text-transform:uppercase;}
+.eform input,.eform textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border);
+  border-radius:7px;font-family:'Inter',sans-serif;font-size:.85rem;outline:none;background:#fff;}
+.eform input:focus,.eform textarea:focus{border-color:var(--navy);}
+.pdiv{border:none;border-top:1px solid var(--border);margin:1.1rem 0;}
+.plbl{font-weight:700;font-size:.87rem;margin-bottom:.7rem;}
+.phgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:.6rem;margin-bottom:.7rem;}
+.phi{position:relative;border-radius:8px;overflow:hidden;height:88px;background:#ddd;}
+.phi img{width:100%;height:100%;object-fit:cover;}
+.pdel{position:absolute;top:3px;right:3px;background:rgba(220,38,38,.9);color:#fff;
+  border:none;width:21px;height:21px;border-radius:50%;cursor:pointer;font-size:.65rem;
+  display:flex;align-items:center;justify-content:center;}
+.upbox{border:2px dashed #ccc;border-radius:10px;padding:1.6rem;text-align:center;
+  cursor:pointer;transition:border .2s,background .2s;background:#fff;margin-bottom:.7rem;}
+.upbox:hover{border-color:var(--navy);background:#F0F4FF;}
+.upbox input{display:none;}
+.upico{font-size:2rem;margin-bottom:.3rem;}
+.upbox p{font-size:.79rem;color:var(--gray);}
+.pacts{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem;align-items:center;}
+.savebtn{background:var(--navy);color:#fff;border:none;padding:10px 22px;border-radius:7px;font-weight:700;font-size:.86rem;cursor:pointer;}
+.delbtn{background:var(--red);color:#fff;border:none;padding:10px 18px;border-radius:7px;font-weight:700;font-size:.86rem;cursor:pointer;}
+.saveok{display:none;color:var(--green);font-size:.82rem;font-weight:500;
+  padding:.3rem .6rem;background:var(--glight);border-radius:6px;align-items:center;gap:.4rem;}
+.saveok.show{display:flex;}
+
+@keyframes riseUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:960px){.nav-center{display:none;}.hbg{display:flex;}.nav-adm{display:none;}}
+@media(max-width:768px){
+  .cwrap,.about-wrap{grid-template-columns:1fr;gap:2rem;}
+  .about-img-box{height:220px;}
+  .gg{grid-template-columns:1fr 1fr;}
+  .gi:nth-child(1),.gi:nth-child(5){grid-column:span 1;}
+  .gi{height:150px;}
+  section{padding:48px clamp(.8rem,4%,3rem);}
+}
+@media(max-width:540px){
+  .pgrid,.tgrid{grid-template-columns:1fr;}
+  .hero-btns{flex-direction:column;align-items:center;}
+  .btn-amber,.btn-ghost{width:100%;max-width:280px;justify-content:center;}
+  .abtns,.magb{flex-direction:column;}
+  .awa,.acall,.mwa,.mc{justify-content:center;}
+  .pfoot{flex-direction:column;align-items:flex-start;}
+  .vbtn{width:100%;}
+}
+@media(max-width:380px){
+  .hero h1{font-size:2rem;}
+  nav{height:58px;} .mob-menu{top:58px;}
+}
+</style>
+</head>
+<body>
+
+<div id="fb-banner"></div>
+
+<!-- NAV -->
+<nav>
+  <a class="logo" href="#home">SMA <span>Builders</span></a>
+  <ul class="nav-center">
+    <li><a href="#home" data-t="nav_home">Home</a></li>
+    <li><a href="#properties" data-t="nav_prop">Properties</a></li>
+    <li><a href="#about">About Us</a></li>
+    <li><a href="#gallery" data-t="nav_gal">Gallery</a></li>
+    <li><a href="#contact" data-t="nav_cont">Contact</a></li>
+    <li><a href="#" onclick="openAdm();return false;" class="nav-adm">⚙ Admin</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="lang-wrap">
+      <button class="lang-btn" onclick="toggleLangDrop()" id="langBtn">🌐 EN ▾</button>
+      <div class="lang-dropdown" id="langDrop">
+        <div class="lang-option active" onclick="setLang('en')">🇬🇧 English</div>
+        <div class="lang-option" onclick="setLang('te')">🇮🇳 తెలుగు</div>
+        <div class="lang-option" onclick="setLang('hi')">🇮🇳 हिन्दी</div>
+        <div class="lang-option" onclick="setLang('ta')">🇮🇳 தமிழ்</div>
+      </div>
+    </div>
+    <a href="#contact" class="nav-cta" data-t="nav_cta">📞 Call Us</a>
+  </div>
+  <button class="hbg" onclick="toggleMob()"><span></span><span></span><span></span></button>
+</nav>
+
+<!-- Mobile Menu -->
+<div class="mob-menu" id="mobMenu">
+  <a href="#home" onclick="closeMob()">🏠 Home</a>
+  <a href="#properties" onclick="closeMob()">🏘️ Properties</a>
+  <a href="#about" onclick="closeMob()">ℹ️ About Us</a>
+  <a href="#gallery" onclick="closeMob()">🖼️ Gallery</a>
+  <a href="#contact" onclick="closeMob()">📞 Contact</a>
+  <a href="#" onclick="openAdm();closeMob();return false;">⚙️ Admin Panel</a>
+  <div class="mob-lang">
+    <button class="mob-lang-btn active" onclick="setLang('en');closeMob()">🇬🇧 EN</button>
+    <button class="mob-lang-btn" onclick="setLang('te');closeMob()">🇮🇳 TE</button>
+    <button class="mob-lang-btn" onclick="setLang('hi');closeMob()">🇮🇳 HI</button>
+    <button class="mob-lang-btn" onclick="setLang('ta');closeMob()">🇮🇳 TA</button>
+  </div>
+</div>
+
+<div class="sw" id="sw">
+
+<!-- HERO -->
+<section id="home" class="hero">
+  <div class="hbadge" data-t="badge">✨ మాషా అల్లాహ్ · Nellore's Trusted Builders</div>
+  <h1>SMA <span data-t="h1sub">Builders & Real Estates</span></h1>
+  <p class="hero-sub" data-t="hero_sub">Your Trusted Real Estate Partner in Nellore, Andhra Pradesh</p>
+  <p class="hero-tel" data-t="hero_tel">Layouts · Flats · Houses · Agricultural Land</p>
+  <div class="hero-btns">
+    <a href="#properties" class="btn-amber">🏠 View Properties</a>
+    <a href="https://wa.me/917396979572?text=Hi%20SMA%20Builders!" class="btn-ghost" target="_blank">💬 WhatsApp Us</a>
+  </div>
+  <div class="hero-stats">
+    <div><div class="stat-n">500+</div><div class="stat-l">Happy Clients</div></div>
+    <div><div class="stat-n">50+</div><div class="stat-l">Projects Done</div></div>
+    <div><div class="stat-n">10+</div><div class="stat-l">Years Exp.</div></div>
+    <div><div class="stat-n">6+</div><div class="stat-l">Active Listings</div></div>
+  </div>
+  <div class="hero-chips">
+    <div class="hchip">🏘️ Layouts & Plots</div>
+    <div class="hchip">🏢 Flats & Apartments</div>
+    <div class="hchip">🏡 Houses</div>
+    <div class="hchip">🌾 Agricultural Land</div>
+  </div>
+</section>
+
+<!-- PROPERTIES -->
+<section id="properties">
+  <span class="sec-tag">Our Listings · మా ఆస్తులు</span>
+  <h2 class="sec-title">Available Properties</h2>
+  <p class="sec-sub">Click any card to see full details, photos & contact our agents directly.</p>
+  <div class="pgrid" id="propGrid">
+    <div class="loading-cards" style="grid-column:1/-1">
+      <div class="loading-spinner"></div><br>Loading properties...
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <span class="sec-tag">About Us · మా గురించి</span>
+  <h2 class="sec-title">Nellore's Trusted Real Estate Partner</h2>
+  <p class="sec-sub">Building trust and fulfilling property dreams across Nellore District since 2014.</p>
+  <div class="about-wrap">
+    <div>
+      <p style="font-size:.89rem;color:var(--gray);line-height:1.8;margin-bottom:1.1rem;">
+        Founded by <strong>Sk. Ahamad</strong> and <strong>Sk. Umar</strong>, SMA Builders & Real Estates is based near NTS Gate, పడుగుపాడు, Nellore. We specialize in DTCP-approved residential plots, open layouts, flats, houses, and agricultural land — all with clear title documents and hassle-free registration.
+      </p>
+      <div class="about-stats-row">
+        <div class="about-stat"><div class="about-stat-n">10+</div><div class="about-stat-l">Years Active</div></div>
+        <div class="about-stat"><div class="about-stat-n">500+</div><div class="about-stat-l">Happy Clients</div></div>
+        <div class="about-stat"><div class="about-stat-n">50+</div><div class="about-stat-l">Projects Done</div></div>
+      </div>
+      <ul class="about-points">
+        <li><span>✅</span><span><strong>DTCP Approved Layouts</strong> – All our plots have proper government approvals.</span></li>
+        <li><span>📜</span><span><strong>Clear Title Documents</strong> – Pattadar & registration paperwork always ready.</span></li>
+        <li><span>🤝</span><span><strong>Honest & Transparent</strong> – No hidden charges. What we say is what you get.</span></li>
+        <li><span>📍</span><span><strong>Local Nellore Experts</strong> – We know every road, village and mandal in the district.</span></li>
+        <li><span>💰</span><span><strong>Best Market Prices</strong> – Competitive rates with flexible options.</span></li>
+      </ul>
+    </div>
+    <div class="about-img-box">
+      <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80" alt="SMA Builders" onerror="this.style.display='none'">
+      <div class="about-badge">🏆 Trusted Since 2014</div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials" style="background:var(--lgray);">
+  <span class="sec-tag">Reviews · సమీక్షలు</span>
+  <h2 class="sec-title">What Our Clients Say</h2>
+  <p class="sec-sub">Real feedback from our happy customers across Nellore district.</p>
+  <div class="tgrid">
+    <div class="tcard">
+      <div class="t-stars">★★★★★</div>
+      <p class="t-text">SMA Builders helped me find the perfect plot in Buchireddipalem. Documents were clear, price was fair, and registration was done within one week. Very honest and professional!</p>
+      <div class="t-auth"><div class="t-ava">RK</div><div><div class="t-name">Ravi Kumar</div><div class="t-loc">📍 Buchireddipalem, Nellore</div></div></div>
+    </div>
+    <div class="tcard">
+      <div class="t-stars">★★★★★</div>
+      <p class="t-text">Sk. Ahamad garu చాలా help చేసారు. వారు చాలా honest గా వ్యవహరించారు. మా family కి perfect house దొరికింది. Nellore లో best real estate agent!</p>
+      <div class="t-auth"><div class="t-ava">SM</div><div><div class="t-name">Syed Mohammed</div><div class="t-loc">📍 Padugupadu, Nellore</div></div></div>
+    </div>
+    <div class="tcard">
+      <div class="t-stars">★★★★★</div>
+      <p class="t-text">I was looking for agricultural land near Nellore for investment. Sk. Umar showed me multiple options with water facilities. Deal completed smoothly. Highly recommend!</p>
+      <div class="t-auth"><div class="t-ava">VP</div><div><div class="t-name">Venkata Prasad</div><div class="t-loc">📍 Nellore District</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section id="gallery">
+  <span class="sec-tag">Gallery · గ్యాలరీ</span>
+  <h2 class="sec-title">Our Projects & Locations</h2>
+  <p class="sec-sub">A look at our plots, layouts and projects across Nellore district.</p>
+  <div class="gg">
+    <div class="gi"><img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80" alt="Layout" loading="lazy" onerror="this.style.display='none'"><div class="glbl">🏘️ Layout Plots – Aerial View</div></div>
+    <div class="gi"><img src="https://images.unsplash.com/photo-1464082354059-27db6ce50048?w=600&q=80" alt="Plots" loading="lazy" onerror="this.style.display='none'"><div class="glbl">📐 Open Plots</div></div>
+    <div class="gi"><img src="https://images.unsplash.com/photo-1625602812206-5ec545ca1231?w=600&q=80" alt="Farm" loading="lazy" onerror="this.style.display='none'"><div class="glbl">🌾 Agricultural Land</div></div>
+    <div class="gi"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80" alt="House" loading="lazy" onerror="this.style.display='none'"><div class="glbl">🏡 Residential House</div></div>
+    <div class="gi"><img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80" alt="Flat" loading="lazy" onerror="this.style.display='none'"><div class="glbl">🏢 Flats & Apartments</div></div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <span class="sec-tag">Contact Us · సంప్రదించండి</span>
+  <h2 class="sec-title">Get In Touch</h2>
+  <p class="sec-sub">Reach us anytime. మిమ్మల్ని సంప్రదించడానికి మేము సంతోషంగా ఉన్నాము!</p>
+  <div class="cwrap">
+    <div>
+      <h3 class="cinfo-title">Our Agents</h3>
+      <div class="crow"><div class="cico">📍</div><div class="ctxt"><strong>Office Address</strong><span>NTS Gate దగ్గర, పడుగుపాడు<br>నెల్లూరు – 524137, Andhra Pradesh</span></div></div>
+      <div class="crow"><div class="cico">🕐</div><div class="ctxt"><strong>Working Hours</strong><span>Monday – Saturday: 9:00 AM – 6:00 PM</span></div></div>
+      <div class="asec">
+        <div class="albl">Agent 1</div><div class="aname">👤 Sk. Ahamad</div>
+        <div class="abtns">
+          <a href="https://wa.me/917396979572?text=Hi%20Sk.%20Ahamad!" class="awa" target="_blank">💬 WhatsApp</a>
+          <a href="tel:+917396979572" class="acall ac1">📞 7396979572</a>
+          <a href="tel:+919701301974" class="acall ac2">📞 9701301974</a>
+        </div>
+      </div>
+      <div class="asec">
+        <div class="albl">Agent 2</div><div class="aname">👤 Sk. Umar</div>
+        <div class="abtns">
+          <a href="https://wa.me/918886021688?text=Hi%20Sk.%20Umar!" class="awa" target="_blank" style="background:var(--wad);">💬 WhatsApp</a>
+          <a href="tel:+918886021688" class="acall ac3">📞 8886021688</a>
+        </div>
+      </div>
+    </div>
+    <div class="cform">
+      <h3 class="cform-title">📩 Send Enquiry</h3>
+      <div class="fg"><label>Your Name *</label><input type="text" id="fn" placeholder="Enter your full name"></div>
+      <div class="fg"><label>Phone Number *</label><input type="tel" id="fp" placeholder="Enter your mobile number"></div>
+      <div class="fg"><label>Property Interest</label><select id="fi"><option value="">— Select a property —</option></select></div>
+      <div class="fg"><label>Message</label><textarea id="fm" placeholder="Tell us your requirements, budget, location..."></textarea></div>
+      <button class="fsub" onclick="submitForm()">💬 Send via WhatsApp →</button>
+      <div class="fok" id="fOk">✅ Opening WhatsApp! We'll contact you soon.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p><strong>SMA Builders & Real Estates</strong> &nbsp;·&nbsp; Sk. Ahamad &nbsp;·&nbsp; Sk. Umar</p>
+  <p>NTS Gate దగ్గర, పడుగుపాడు, నెల్లూరు – 524137</p>
+  <p>📞 7396979572 &nbsp;·&nbsp; 9701301974 &nbsp;·&nbsp; 8886021688</p>
+  <p style="margin-top:.4rem;font-size:.72rem;opacity:.38;">© <span id="yr"></span> SMA Builders & Real Estates. All Rights Reserved.</p>
+</footer>
+</div>
+
+<!-- ADMIN -->
+<div class="adm-wrap" id="admWrap">
+  <div class="atop">
+    <div>⚙️ <strong>Admin Panel</strong> — SMA Builders & Real Estates</div>
+    <button onclick="closeAdm()">← Back to Website</button>
+  </div>
+  <div class="ain">
+    <h2>Admin Panel</h2>
+    <p class="sub">Manage properties, view visitor stats, and deploy your website.</p>
+
+    <!-- FIREBASE STATUS -->
+    <div class="fb-setup" id="fbSetupCard">
+      <h3>🔥 Firebase Status <span class="fb-setup-status warn" id="fbStatusBadge">⚠️ Not Connected</span></h3>
+      <p style="font-size:.83rem;color:var(--gray);margin-top:.3rem;">Firebase saves your properties online so any device can see them. Follow these steps once:</p>
+      <div class="fb-steps">
+        <div class="fb-step"><div class="fb-step-num">1</div><div class="fb-step-txt">Go to <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a> → Sign in with your Google account → Click <strong>"Add project"</strong> → Name it <code>sma-builders</code> → Create project</div></div>
+        <div class="fb-step"><div class="fb-step-num">2</div><div class="fb-step-txt">Inside your project → Click the <strong>&lt;/&gt; Web</strong> icon → App nickname: <code>SMA Website</code> → Register App → Copy the <code>firebaseConfig</code> object shown</div></div>
+        <div class="fb-step"><div class="fb-step-num">3</div><div class="fb-step-txt">Go to <strong>Build → Realtime Database → Create database → Start in TEST MODE → Enable</strong>. Copy the database URL (e.g. <code>https://sma-builders-default-rtdb.firebaseio.com</code>)</div></div>
+        <div class="fb-step"><div class="fb-step-num">4</div><div class="fb-step-txt">Open <code>index.html</code> in Notepad → Find <code>PASTE_YOUR_apiKey_HERE</code> → Replace all values with your copied config → Save the file</div></div>
+        <div class="fb-step"><div class="fb-step-num">5</div><div class="fb-step-txt">Re-upload to Vercel → Firebase will connect automatically ✅</div></div>
+      </div>
+    </div>
+
+    <!-- VERCEL DEPLOY GUIDE -->
+    <div class="deploy-guide">
+      <h3>🚀 Deploy on Vercel (Step by Step)</h3>
+      <div class="dstep"><div class="dstep-num">1</div><div class="dstep-txt"><strong>Download your project files</strong> — You need 2 files: <code>index.html</code> and <code>vercel.json</code>. Keep them in one folder named <code>sma-project</code>.</div></div>
+      <div class="dstep"><div class="dstep-num">2</div><div class="dstep-txt"><strong>Go to <a href="https://vercel.com" target="_blank">vercel.com</a></strong> → Click "Sign Up" → Choose "Continue with Google" → Free account.</div></div>
+      <div class="dstep"><div class="dstep-num">3</div><div class="dstep-txt"><strong>Click "Add New Project"</strong> → Choose "Upload" → Drag and drop your <code>sma-project</code> folder → Click Deploy. Your site goes live in 30 seconds!</div></div>
+      <div class="dstep"><div class="dstep-num">4</div><div class="dstep-txt"><strong>You'll get a free link</strong> like <code>sma-project.vercel.app</code> — share this with anyone to test.</div></div>
+      <div class="dstep"><div class="dstep-num">5</div><div class="dstep-txt"><strong>Connect your GoDaddy domain</strong> → In Vercel: Project Settings → Domains → Add <code>smaproperties.com</code> → Vercel shows you DNS values to add in GoDaddy (see table below).</div></div>
+    </div>
+
+    <!-- GODADDY DNS GUIDE -->
+    <div class="dns-guide">
+      <h3>🌐 Connect GoDaddy Domain to Vercel</h3>
+      <p style="font-size:.83rem;color:var(--gray);margin-bottom:.5rem;">In GoDaddy → My Products → DNS → Add these records:</p>
+      <table class="dns-table">
+        <tr><th>Type</th><th>Name</th><th>Value</th><th>TTL</th></tr>
+        <tr><td>A</td><td>@</td><td>76.76.21.21</td><td>600</td></tr>
+        <tr><td>CNAME</td><td>www</td><td>cname.vercel-dns.com</td><td>600</td></tr>
+      </table>
+      <p style="font-size:.78rem;color:var(--gray);margin-top:.8rem;">⏱️ DNS changes take 10 minutes to 24 hours to work. After that, <strong>smaproperties.com</strong> will open your website!</p>
+    </div>
+
+    <!-- VISITOR STATS -->
+    <div class="vctr">
+      <div class="vctr-title">📊 Visitor Statistics</div>
+      <div class="vctr-source" id="vctr-source">Source: This device only (connect Firebase for all-device tracking)</div>
+      <div class="vstats">
+        <div class="vst"><div class="vst-n" id="v-total">—</div><div class="vst-l">Total Visits</div></div>
+        <div class="vst"><div class="vst-n" id="v-today">—</div><div class="vst-l">Today</div></div>
+        <div class="vst"><div class="vst-n" id="v-week">—</div><div class="vst-l">This Week</div></div>
+        <div class="vst"><div class="vst-n" id="v-month">—</div><div class="vst-l">This Month</div></div>
+      </div>
+      <div class="vrecent-title">Recent Visits</div>
+      <div id="vrecent-list"></div>
+      <button class="vreset" onclick="resetLocalStats()">🗑️ Reset Local Stats</button>
+    </div>
+
+    <button class="addbtn" onclick="addProp()">➕ Add New Property</button>
+    <div class="ptabs" id="propTabs"></div>
+    <div class="apanel" id="admPanel">
+      <div class="ptitle" id="panelTitle">✏️ Edit Property</div>
+      <div class="eform" id="editForm"></div>
+      <hr class="pdiv">
+      <div class="plbl">📸 Property Photos <small style="font-weight:400;color:var(--gray);">(Use image URLs for best results with Firebase)</small></div>
+      <div class="phgrid" id="photoGrid"></div>
+      <div class="upbox" onclick="document.getElementById('pup').click()">
+        <input type="file" id="pup" accept="image/*" multiple onchange="uploadPics(event)">
+        <div class="upico">📷</div>
+        <p>Click to upload property photos<br><small style="opacity:.6;">JPG, PNG – multiple files allowed</small></p>
+      </div>
+      <div class="pacts">
+        <button class="savebtn" onclick="saveProp()">💾 Save Property</button>
+        <button class="delbtn" onclick="delProp()">🗑️ Delete Property</button>
+        <span class="saveok" id="saveOk">✅ Saved!</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="modal" onclick="handleOvl(event)">
+  <div class="modal" id="modalBox">
+    <div class="mhead">
+      <button class="mcls" onclick="closeModal()">✕</button>
+      <h2 id="mTitle">Property</h2><p id="mSub"></p>
+    </div>
+    <div class="mbody">
+      <div class="sldr" id="mSldr"></div>
+      <div class="dgrid" id="mDtls"></div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:.8rem 0;">
+      <div class="malbl">📞 CONTACT OUR AGENTS DIRECTLY</div>
+      <div class="magt"><div class="magn">👤 Sk. Ahamad</div>
+        <div class="magb">
+          <a id="mwa1" href="#" class="mwa" target="_blank">💬 WhatsApp</a>
+          <a href="tel:+917396979572" class="mc mc1">📞 7396979572</a>
+          <a href="tel:+919701301974" class="mc mc2">📞 9701301974</a>
+        </div>
+      </div>
+      <div class="magt"><div class="magn">👤 Sk. Umar</div>
+        <div class="magb">
+          <a id="mwa2" href="#" class="mwa" target="_blank">💬 WhatsApp</a>
+          <a href="tel:+918886021688" class="mc mc3">📞 8886021688</a>
+        </div>
+      </div>
+      <div class="qenq">
+        <h4>📩 Send Quick Enquiry</h4>
+        <input class="qi" type="text" id="qn" placeholder="Your Name">
+        <input class="qi" type="tel" id="qp" placeholder="Your Phone">
+        <select class="qi" id="qa" style="margin-bottom:.6rem;">
+          <option value="7396979572">Send to Sk. Ahamad (7396979572)</option>
+          <option value="8886021688">Send to Sk. Umar (8886021688)</option>
+        </select>
+        <button class="qb" onclick="quickEnq()">💬 Send to WhatsApp Now →</button>
+        <div class="qok" id="qOk">✅ Opening WhatsApp! We'll contact you shortly.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FLOATS -->
+<div class="floats">
+  <a href="https://wa.me/917396979572?text=Hi%20SMA%20Builders!" class="fb fb-wa" target="_blank" title="WhatsApp">💬</a>
+  <a href="tel:+917396979572" class="fb fb-c" title="Call">📞</a>
+</div>
+
+<script>
+/* ══ PROPERTY DATA ══ */
+const KEY='sma_v5';
+let apid=null,spics=[],sidx=0,eid=null;
+
+const DEF=[
+  {id:'p1',badge:'Hot Deal',bclass:'hot',bg:'#d4edda',em:'🏘️',
+   type:'Layout / లేఅవుట్',name:'Srinivasa Layout – West Facing Plots',
+   tel:'శ్రీనివాస లేఅవుట్ – పశ్చిమ ముఖంగా స్థలాలు',
+   addr:'Ramadasu Kandriga Grama Panchayat, Venkatachalam Mandal, Nellore',avail:'2 Plots Available',
+   tags:['33½ Ankanams','West Facing','Kandriga','Venkatachalam Mandal'],
+   dtls:[{i:'🏘️',l:'Layout',v:'Srinivasa Layout'},{i:'📐',l:'Plot Size',v:'33½ Ankanams each'},
+    {i:'🧭',l:'Facing',v:'West Facing'},{i:'📍',l:'Address',v:'Ramadasu Kandriga, Venkatachalam Mandal, Nellore AP'},
+    {i:'📜',l:'Documents',v:'Clear Title – Ready for Registration'},{i:'💰',l:'Price',v:'Contact for best price'}],
+   pics:['https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80']},
+  {id:'p2',badge:'Available',bclass:'def',bg:'#dbeafe',em:'🏘️',
+   type:'Layout / లేఅవుట్',name:'Srinivasa Layout – East Facing Plot',
+   tel:'శ్రీనివాస లేఅవుట్ – తూర్పు ముఖంగా స్థలం',
+   addr:'Ramadasu Kandriga Grama Panchayat, Venkatachalam Mandal, Nellore',avail:'1 Plot Available',
+   tags:['33½ Ankanams','East Facing','Kandriga'],
+   dtls:[{i:'🏘️',l:'Layout',v:'Srinivasa Layout'},{i:'📐',l:'Plot Size',v:'33½ Ankanams'},
+    {i:'🧭',l:'Facing',v:'East Facing'},{i:'📜',l:'Documents',v:'Clear Title'},{i:'💰',l:'Price',v:'Contact us'}],
+   pics:['https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=800&q=80']},
+  {id:'p3',badge:'New',bclass:'new-tag',bg:'#fef3c7',em:'🌿',
+   type:'Layout / లేఅవుట్',name:'Saravana Kamakshi Gardens',
+   tel:'సరవణ కామాక్షి గార్డెన్స్ లేఅవుట్',
+   addr:'Penballi Gramam, Buchireddipalem Mandal, Nellore District, AP',avail:'Plots Available',
+   tags:['25 Ankanams','East Facing','Penballi Gramam'],
+   dtls:[{i:'🌿',l:'Layout',v:'Saravana Kamakshi Gardens'},{i:'📐',l:'Plot Size',v:'25 Ankanams'},
+    {i:'🧭',l:'Facing',v:'East Facing'},{i:'💧',l:'Water',v:'Borewell nearby'},{i:'💰',l:'Price',v:'Contact us'}],
+   pics:['https://images.unsplash.com/photo-1625602812206-5ec545ca1231?w=800&q=80']},
+  {id:'p4',badge:'Available',bclass:'def',bg:'#fce7f3',em:'🏡',
+   type:'Residential / నివాస',name:'Residential Plots – Nellore',
+   tel:'నివాస స్థలాలు – నెల్లూరు',
+   addr:'NTS Gate Area, పడుగుపాడు, Nellore – 524137',avail:'Available Now',
+   tags:['DTCP Approved','Road Facing','Water & Power'],
+   dtls:[{i:'🏡',l:'Type',v:'DTCP Approved Residential Plots'},{i:'🛣️',l:'Roads',v:'30-40 ft wide'},
+    {i:'💧',l:'Utilities',v:'Water & Electricity Available'},{i:'💰',l:'Price',v:'Contact us'}],
+   pics:['https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&q=80']},
+  {id:'p5',badge:'Ready to Move',bclass:'ready',bg:'#ede9fe',em:'🏢',
+   type:'Flats / ఫ్లాట్లు',name:'Flats & Apartments – Nellore',
+   tel:'ఫ్లాట్లు & అపార్ట్‌మెంట్లు – నెల్లూరు',
+   addr:'Nellore City & Surroundings, Andhra Pradesh',avail:'Ready to Move',
+   tags:['2BHK & 3BHK','Parking','Security','Lift'],
+   dtls:[{i:'🏢',l:'Type',v:'2BHK & 3BHK Flats'},{i:'📏',l:'Size',v:'800–1400 sq.ft'},
+    {i:'🔒',l:'Security',v:'24/7 CCTV'},{i:'💰',l:'Price',v:'Contact us'}],
+   pics:['https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80']},
+  {id:'p6',badge:'Available',bclass:'def',bg:'#d1fae5',em:'🌾',
+   type:'Agricultural / వ్యవసాయ',name:'Agricultural Land – Nellore District',
+   tel:'వ్యవసాయ భూమి / పాలముల అమ్మకానికి',
+   addr:'Various Locations, Nellore District, Andhra Pradesh',avail:'Available',
+   tags:['Farm Land','Water Source','Road Access','Pattadar Docs'],
+   dtls:[{i:'🌾',l:'Type',v:'Agricultural / Farm Land'},{i:'💧',l:'Water',v:'Borewell/Canal available'},
+    {i:'📜',l:'Documents',v:'Clear Pattadar Documents'},{i:'💰',l:'Price',v:'Contact for plot-wise pricing'}],
+   pics:['https://images.unsplash.com/photo-1523741543316-beb7fc7023d8?w=800&q=80']}
+];
+
+function load(){try{const s=localStorage.getItem(KEY);return s?JSON.parse(s):JSON.parse(JSON.stringify(DEF));}catch(e){return JSON.parse(JSON.stringify(DEF));}}
+function store(p){
+  try{
+    localStorage.setItem(KEY,JSON.stringify(p));
+    // Also save to Firebase if connected
+    if(window._fbReady && window._savePropsToFirebase) window._savePropsToFirebase(p);
+  }catch(e){alert('Storage full. Please remove some photos.');}
+}
+
+/* RENDER CARDS */
+function renderCards(){
+  const pr=load();
+  const g=document.getElementById('propGrid');
+  const sel=document.getElementById('fi');
+  g.innerHTML='';
+  sel.innerHTML='<option value="">— Select a property —</option>';
+  pr.forEach((p,i)=>{
+    const fp=p.pics&&p.pics.length?p.pics[0]:null;
+    const c=document.createElement('div');c.className='pcard';c.style.transitionDelay=`${i*70}ms`;
+    c.innerHTML=`
+      <div class="pthumb" style="background:${p.bg};">
+        ${fp?`<img src="${fp}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">`:`<span class="ef">${p.em}</span>`}
+        <span class="pbadge ${p.bclass||'def'}">${p.badge}</span>
+      </div>
+      <div class="pbody">
+        <div class="ptype">${p.type}</div>
+        <div class="pname">${p.name}</div>
+        <div class="paddr"><span>📍</span><span>${p.addr}</span></div>
+        <div class="ptags">${p.tags.map(t=>`<span class="ptag">${t}</span>`).join('')}</div>
+        <div class="pfoot"><span class="avpill">✅ ${p.avail}</span><button class="vbtn">View Details →</button></div>
+      </div>`;
+    c.onclick=()=>openModal(p.id);
+    g.appendChild(c);
+    setTimeout(()=>c.classList.add('vis'),i*70+50);
+    const o=document.createElement('option');o.value=p.name;o.textContent=p.name;sel.appendChild(o);
+  });
+}
+
+/* MODAL */
+function openModal(pid){
+  const pr=load();const p=pr.find(x=>x.id===pid);if(!p)return;
+  apid=pid;sidx=0;spics=p.pics||[];
+  document.getElementById('mTitle').textContent=p.name;
+  document.getElementById('mSub').textContent=p.tel;
+  buildSldr();
+  document.getElementById('mDtls').innerHTML=p.dtls.map(d=>
+    `<div class="drow"><span class="dico">${d.i}</span><div class="dbdy"><strong>${d.l}</strong><span>${d.v}</span></div></div>`).join('');
+  const msg=encodeURIComponent(`Hi SMA Builders! 🏠\nInterested in: *${p.name}*\nAddress: ${p.addr}\nPlease share details.`);
+  document.getElementById('mwa1').href=`https://wa.me/917396979572?text=${msg}`;
+  document.getElementById('mwa2').href=`https://wa.me/918886021688?text=${msg}`;
+  document.getElementById('qn').value='';document.getElementById('qp').value='';
+  document.getElementById('qOk').style.display='none';
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');document.body.style.overflow='';}
+function handleOvl(e){if(e.target===document.getElementById('modal'))closeModal();}
+
+function buildSldr(){
+  const sl=document.getElementById('mSldr');
+  if(!spics.length){sl.innerHTML=`<div class="noph"><span>📷</span><span>Photos coming soon</span></div>`;return;}
+  const nav=spics.length>1?`<button class="snav sp" onclick="slide(-1)">‹</button><button class="snav sn2" onclick="slide(1)">›</button>`:'';
+  const dots=spics.length>1?`<div class="sdots">${spics.map((_,i)=>`<div class="sd ${i===0?'on':''}" onclick="goS(${i})"></div>`).join('')}</div>`:'';
+  const cnt=spics.length>1?`<span class="scnt">1 / ${spics.length}</span>`:'';
+  sl.innerHTML=`<img id="simg" src="${spics[0]}" alt="Property" onerror="this.style.display='none'">${nav}${dots}${cnt}`;
+}
+function slide(d){sidx=(sidx+d+spics.length)%spics.length;goS(sidx);}
+function goS(i){
+  sidx=i;const img=document.getElementById('simg');if(img)img.src=spics[i];
+  document.querySelectorAll('.sd').forEach((d,di)=>d.classList.toggle('on',di===i));
+  const c=document.querySelector('.scnt');if(c)c.textContent=`${i+1} / ${spics.length}`;
+}
+
+function quickEnq(){
+  const pr=load();const p=pr.find(x=>x.id===apid);
+  const n=document.getElementById('qn').value.trim();
+  const ph=document.getElementById('qp').value.trim();
+  const num=document.getElementById('qa').value;
+  if(!n||!ph){alert('Please enter your name and phone number.');return;}
+  const msg=encodeURIComponent(`Hi SMA Builders! 🏠\n*Name:* ${n}\n*Phone:* ${ph}\n*Interested in:* ${p?p.name:'a property'}\nPlease contact me.`);
+  window.open(`https://wa.me/91${num}?text=${msg}`,'_blank');
+  document.getElementById('qOk').style.display='block';
+}
+
+function submitForm(){
+  const n=document.getElementById('fn').value.trim();
+  const ph=document.getElementById('fp').value.trim();
+  const prop=document.getElementById('fi').value;
+  const msg2=document.getElementById('fm').value.trim();
+  if(!n||!ph){alert('Please enter name & phone number.');return;}
+  const msg=encodeURIComponent(`Hi SMA Builders! 🏠\n*Name:* ${n}\n*Phone:* ${ph}\n*Interested in:* ${prop||'General Enquiry'}\n*Message:* ${msg2||'-'}`);
+  window.open(`https://wa.me/917396979572?text=${msg}`,'_blank');
+  document.getElementById('fOk').style.display='block';
+  ['fn','fp','fm'].forEach(id=>document.getElementById(id).value='');
+  setTimeout(()=>document.getElementById('fOk').style.display='none',5000);
+}
+
+function toggleMob(){document.getElementById('mobMenu').classList.toggle('open');}
+function closeMob(){document.getElementById('mobMenu').classList.remove('open');}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.lang-wrap'))document.getElementById('langDrop').classList.remove('open');
+});
+function toggleLangDrop(){document.getElementById('langDrop').classList.toggle('open');}
+function setLang(lang){document.getElementById('langDrop').classList.remove('open');}
+
+/* VISITOR TRACKING (local) */
+const VKEY='sma_visitors_v1';
+function loadVisits(){try{const s=localStorage.getItem(VKEY);return s?JSON.parse(s):{total:0,todayCount:0,lastDate:'',recent:[]};}catch(e){return{total:0,todayCount:0,lastDate:'',recent:[]};}}
+function saveVisits(v){try{localStorage.setItem(VKEY,JSON.stringify(v));}catch(e){}}
+function recordVisit(){
+  const v=loadVisits();const now=new Date();
+  const todayStr=now.toISOString().slice(0,10);
+  if(v.lastDate!==todayStr)v.todayCount=0;
+  v.total=(v.total||0)+1;v.todayCount=(v.todayCount||0)+1;v.lastDate=todayStr;
+  const entry={date:todayStr,time:now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),ref:document.referrer?'🔗 Referred':'🔍 Direct'};
+  v.recent=[entry,...(v.recent||[])].slice(0,15);
+  saveVisits(v);
+}
+
+async function renderVStats(){
+  // Try Firebase first
+  if(window._fbReady && window._getVisitorStatsFirebase){
+    const fbStats=await window._getVisitorStatsFirebase();
+    if(fbStats){
+      document.getElementById('v-total').textContent=fbStats.total;
+      document.getElementById('v-today').textContent=fbStats.today;
+      document.getElementById('v-week').textContent=fbStats.week;
+      document.getElementById('v-month').textContent=fbStats.month;
+      document.getElementById('vctr-source').textContent='✅ Source: Firebase (all devices)';
+      const rl=document.getElementById('vrecent-list');
+      if(!fbStats.recent.length){rl.innerHTML='<div class="vrow"><span class="vrow-info" style="opacity:.5">No visits yet</span></div>';return;}
+      rl.innerHTML=fbStats.recent.map(r=>`<div class="vrow"><span class="vrow-info">${r.ref||'🔍 Direct'}</span><span class="vrow-time">${r.date||''} ${r.time||''}</span></div>`).join('');
+      return;
+    }
+  }
+  // Fallback to local
+  const v=loadVisits();
+  const weekAgo=new Date(Date.now()-7*864e5).toISOString().slice(0,10);
+  const monthAgo=new Date(Date.now()-30*864e5).toISOString().slice(0,10);
+  document.getElementById('v-total').textContent=v.total||0;
+  document.getElementById('v-today').textContent=v.todayCount||0;
+  document.getElementById('v-week').textContent=(v.recent||[]).filter(r=>r.date>=weekAgo).length;
+  document.getElementById('v-month').textContent=(v.recent||[]).filter(r=>r.date>=monthAgo).length;
+  const rl=document.getElementById('vrecent-list');
+  if(!(v.recent||[]).length){rl.innerHTML='<div class="vrow"><span class="vrow-info" style="opacity:.5">No visits recorded yet</span></div>';return;}
+  rl.innerHTML=v.recent.slice(0,8).map(r=>`<div class="vrow"><span class="vrow-info">${r.ref}</span><span class="vrow-time">${r.date} ${r.time}</span></div>`).join('');
+}
+
+function resetLocalStats(){
+  if(!confirm('Reset local visitor stats?'))return;
+  localStorage.removeItem(VKEY);renderVStats();
+}
+
+/* ADMIN */
+const ADM_PW='sma2025';
+function openAdm(){
+  const pw=prompt('🔐 Enter Admin Password:');
+  if(pw===null)return;
+  if(pw!==ADM_PW){alert('❌ Incorrect password.');return;}
+  document.getElementById('sw').classList.add('hidden');
+  document.getElementById('admWrap').classList.add('open');
+  window.scrollTo(0,0);renderTabs();renderVStats();
+  // Update Firebase status badge
+  const badge=document.getElementById('fbStatusBadge');
+  if(window._fbReady){
+    badge.textContent='✅ Connected';badge.className='fb-setup-status ok';
+    document.getElementById('fbSetupCard').style.borderColor='var(--green)';
+  }
+}
+function closeAdm(){document.getElementById('admWrap').classList.remove('open');document.getElementById('sw').classList.remove('hidden');renderCards();}
+
+function renderTabs(){
+  const pr=load();const tabs=document.getElementById('propTabs');tabs.innerHTML='';
+  pr.forEach(p=>{
+    const b=document.createElement('button');b.className='ptab'+(eid===p.id?' on':'');
+    b.textContent=p.name.length>28?p.name.slice(0,28)+'…':p.name;
+    b.onclick=()=>editP(p.id);tabs.appendChild(b);
+  });
+  if(!eid)document.getElementById('admPanel').classList.remove('open');
+}
+
+function editP(pid){
+  eid=pid;const pr=load();const p=pr.find(x=>x.id===pid);if(!p)return;
+  document.getElementById('panelTitle').textContent='✏️ Editing: '+p.name;
+  document.getElementById('editForm').innerHTML=`
+    <div><label>Property Name</label><input id="ef_n" value="${esc(p.name)}"></div>
+    <div><label>Telugu Name</label><input id="ef_t" value="${esc(p.tel)}"></div>
+    <div><label>Type Label</label><input id="ef_ty" value="${esc(p.type)}"></div>
+    <div><label>Badge (Hot Deal / Available / New / Ready to Move)</label><input id="ef_b" value="${esc(p.badge)}"></div>
+    <div><label>Full Address</label><input id="ef_a" value="${esc(p.addr)}"></div>
+    <div><label>Availability Text</label><input id="ef_av" value="${esc(p.avail)}"></div>
+    <div><label>Tags (comma separated)</label><input id="ef_tg" value="${esc(p.tags.join(', '))}"></div>
+    <div><label>Details — one per line — emoji|Label|Value</label>
+      <textarea id="ef_d" rows="8" style="font-size:.82rem;">${p.dtls.map(d=>`${d.i}|${d.l}|${d.v}`).join('\n')}</textarea></div>`;
+  renderPG(p);
+  document.getElementById('admPanel').classList.add('open');
+  document.getElementById('saveOk').classList.remove('show');
+  renderTabs();
+  setTimeout(()=>document.getElementById('admPanel').scrollIntoView({behavior:'smooth',block:'start'}),100);
+}
+
+function esc(s){return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
+
+function renderPG(p){
+  const g=document.getElementById('photoGrid');g.innerHTML='';
+  (p.pics||[]).forEach((ph,i)=>{
+    const d=document.createElement('div');d.className='phi';
+    d.innerHTML=`<img src="${ph}" alt="Photo" onerror="this.style.display='none'"><button class="pdel" onclick="delPic('${p.id}',${i})">✕</button>`;
+    g.appendChild(d);
+  });
+}
+
+function uploadPics(e){
+  const files=Array.from(e.target.files);const pr=load();const p=pr.find(x=>x.id===eid);if(!p)return;
+  let done=0;
+  files.forEach(f=>{
+    const r=new FileReader();
+    r.onload=ev=>{p.pics=p.pics||[];p.pics.push(ev.target.result);done++;
+      if(done===files.length){store(pr);renderPG(p);}};
+    r.readAsDataURL(f);
+  });e.target.value='';
+}
+
+function delPic(pid,idx){
+  if(!confirm('Delete this photo?'))return;
+  const pr=load();const p=pr.find(x=>x.id===pid);if(!p)return;
+  p.pics.splice(idx,1);store(pr);renderPG(p);
+}
+
+function saveProp(){
+  const pr=load();const p=pr.find(x=>x.id===eid);if(!p)return;
+  p.name=document.getElementById('ef_n').value.trim();
+  p.tel=document.getElementById('ef_t').value.trim();
+  p.type=document.getElementById('ef_ty').value.trim();
+  p.badge=document.getElementById('ef_b').value.trim();
+  p.addr=document.getElementById('ef_a').value.trim();
+  p.avail=document.getElementById('ef_av').value.trim();
+  p.tags=document.getElementById('ef_tg').value.split(',').map(s=>s.trim()).filter(Boolean);
+  p.dtls=document.getElementById('ef_d').value.split('\n').filter(Boolean).map(line=>{
+    const pts=line.split('|');return{i:pts[0]?.trim()||'📌',l:pts[1]?.trim()||'',v:pts[2]?.trim()||''};
+  });
+  store(pr);renderTabs();renderCards();
+  const ok=document.getElementById('saveOk');ok.classList.add('show');
+  setTimeout(()=>ok.classList.remove('show'),3000);
+}
+
+function delProp(){
+  if(!confirm('Delete this property permanently?'))return;
+  let pr=load();pr=pr.filter(x=>x.id!==eid);store(pr);eid=null;
+  document.getElementById('admPanel').classList.remove('open');renderTabs();
+}
+
+function addProp(){
+  const pr=load();
+  const np={id:'p'+Date.now(),badge:'Available',bclass:'def',bg:'#f5f0eb',em:'🏘️',
+    type:'Layout / లేఅవుట్',name:'New Property',tel:'కొత్త ఆస్తి',
+    addr:'Nellore, Andhra Pradesh',avail:'Available',
+    tags:['Plot'],dtls:[{i:'📐',l:'Size',v:'Contact us'},{i:'💰',l:'Price',v:'Contact us'}],pics:[]};
+  pr.push(np);store(pr);editP(np.id);renderTabs();
+}
+
+/* SHOW FIREBASE STATUS BANNER */
+setTimeout(()=>{
+  const banner=document.getElementById('fb-banner');
+  if(window._fbReady){
+    banner.textContent='✅ Firebase Connected – Property data is saved online for all devices!';
+    banner.className='fb-ok';
+    setTimeout(()=>banner.style.display='none',5000);
+  } else {
+    banner.textContent='⚠️ Firebase not set up yet – Data saved locally only. Open Admin Panel for setup instructions.';
+    banner.className='fb-warn';
+    setTimeout(()=>banner.style.display='none',8000);
+  }
+},2000);
+
+/* INIT */
+document.getElementById('yr').textContent=new Date().getFullYear();
+recordVisit();
+renderCards();
+</script>
+</body>
+</html>
