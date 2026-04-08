@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+	<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -11,10 +11,10 @@
 <meta property="og:title" content="SMA Builders & Real Estates – Nellore">
 <meta property="og:description" content="Buy plots, houses, flats & agricultural land in Nellore, AP. Best prices guaranteed. Call: 7396979572">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://smaproperties.com">
+<meta property="og:url" content="https://smaproperties.in">
 <meta property="og:locale" content="en_IN">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
-<link rel="canonical" href="https://smaproperties.com">
+<link rel="canonical" href="https://smaproperties.in">
 
 <!-- ═══════════════════════════════════════════
   GOOGLE ANALYTICS – STEP 3
@@ -28,6 +28,44 @@
   gtag('js', new Date());
   gtag('config', 'G-XXXXXXXXXX');
 </script> -->
+
+<!-- ═══════════════════════════════════════════════════════════
+   EMAILJS – New Registration Notifications (FREE)
+
+   HOW TO SET UP (5 minutes, free 200 emails/month):
+   1. Go to https://www.emailjs.com → Sign Up (free)
+   2. Add Email Service → choose Gmail → connect your Gmail
+   3. Note your "Service ID" (e.g. service_xxx)
+   4. Email Templates → Create New Template
+      Subject:  New SMA Registration: {{user_name}}
+      Content:  Name: {{user_name}}
+                Phone: {{user_phone}}
+                Email: {{user_email}}
+                Interest: {{user_interest}}
+                Time: {{reg_time}}
+      Save → note "Template ID" (e.g. template_xxx)
+   5. Account → API Keys → copy "Public Key"
+   6. Paste all 4 values below (Service ID, Template ID, Public Key, your owner email)
+═══════════════════════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+window.EMAILJS_CONFIG = {
+  publicKey:  "nbpFEKK_JzSBAM8Zb",
+  serviceId:  "service_oydkoyq",   // ← from EmailJS → Email Services (starts with "service_")
+  templateId: "template_og1uw6h",
+  ownerEmail: "umarshaikk992@gmail.com"
+};
+window.EMAILJS_READY = false;
+try {
+  if (window.emailjs && !window.EMAILJS_CONFIG.publicKey.includes('PASTE_YOUR')) {
+    window.emailjs.init({ publicKey: window.EMAILJS_CONFIG.publicKey });
+    window.EMAILJS_READY = true;
+    console.log('✅ EmailJS ready');
+  } else {
+    console.info('ℹ️ EmailJS not configured yet — registrations will not send email notifications.');
+  }
+} catch(e) { console.warn('EmailJS init error:', e); }
+</script>
 
 <!-- Firebase SDK -->
 <script type="module">
@@ -54,13 +92,13 @@ import { getDatabase, ref, set, get, onValue, push, serverTimestamp }
 
 // ↓↓↓ PASTE YOUR FIREBASE CONFIG HERE ↓↓↓
 const firebaseConfig = {
-  apiKey:            "PASTE_YOUR_apiKey_HERE",
-  authDomain:        "PASTE_YOUR_authDomain_HERE",
-  databaseURL:       "PASTE_YOUR_databaseURL_HERE",
-  projectId:         "PASTE_YOUR_projectId_HERE",
-  storageBucket:     "PASTE_YOUR_storageBucket_HERE",
-  messagingSenderId: "PASTE_YOUR_messagingSenderId_HERE",
-  appId:             "PASTE_YOUR_appId_HERE"
+  apiKey:            "AIzaSyDg2Dfnnonuziy9ERvqm4MqCtoIkMuhxrI",
+  authDomain:        "sma-builders-c09ec.firebaseapp.com",
+  databaseURL:       "https://sma-builders-c09ec-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:         "sma-builders-c09ec",
+  storageBucket:     "sma-builders-c09ec.firebasestorage.app",
+  messagingSenderId: "45889125180",
+  appId:             "1:45889125180:web:59b01c6f0c3c8601207c39"
 };
 // ↑↑↑ PASTE YOUR FIREBASE CONFIG HERE ↑↑↑
 
@@ -565,6 +603,65 @@ footer strong{color:var(--amber2);}
   padding:.3rem .6rem;background:var(--glight);border-radius:6px;align-items:center;gap:.4rem;}
 .saveok.show{display:flex;}
 
+/* ── Auth (Sign In / Sign Up) ── */
+.nav-auth{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+  color:#fff;padding:6px 14px;border-radius:20px;font-size:.78rem;font-weight:600;
+  cursor:pointer;white-space:nowrap;transition:background .2s;margin-right:.4rem;}
+.nav-auth:hover{background:rgba(255,255,255,.22);}
+.nav-auth.in{background:var(--glight);color:var(--green);border-color:#86EFAC;}
+.auth-ovl{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:2000;
+  align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(3px);}
+.auth-ovl.open{display:flex;}
+.auth-box{background:#fff;border-radius:14px;max-width:420px;width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden;animation:riseUp .3s ease;}
+.auth-head{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;
+  padding:1.2rem 1.4rem;display:flex;justify-content:space-between;align-items:center;}
+.auth-head h3{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:900;}
+.auth-head .auth-x{background:none;border:none;color:#fff;font-size:1.4rem;cursor:pointer;line-height:1;}
+.auth-tabs{display:flex;border-bottom:1px solid var(--border);}
+.auth-tab{flex:1;padding:.8rem;background:#fff;border:none;font-weight:700;font-size:.84rem;
+  color:var(--gray);cursor:pointer;border-bottom:3px solid transparent;font-family:'Inter',sans-serif;}
+.auth-tab.on{color:var(--navy);border-bottom-color:var(--amber);}
+.auth-body{padding:1.4rem;}
+.auth-body label{font-size:.74rem;font-weight:600;color:var(--gray);text-transform:uppercase;display:block;margin-bottom:4px;}
+.auth-body input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:7px;
+  font-family:'Inter',sans-serif;font-size:.88rem;outline:none;margin-bottom:.85rem;}
+.auth-body input:focus{border-color:var(--navy);}
+.auth-btn{width:100%;background:var(--navy);color:#fff;border:none;padding:11px;border-radius:7px;
+  font-weight:700;font-size:.9rem;cursor:pointer;font-family:'Inter',sans-serif;margin-top:.3rem;}
+.auth-btn:hover{background:var(--navy2);}
+.auth-msg{padding:.6rem;border-radius:6px;font-size:.8rem;text-align:center;margin-top:.7rem;display:none;}
+.auth-msg.err{background:#FEE2E2;color:#991B1B;display:block;}
+.auth-msg.ok{background:var(--glight);color:var(--green);display:block;}
+.auth-note{font-size:.72rem;color:var(--gray);text-align:center;margin-top:.8rem;line-height:1.5;}
+
+/* ── Registered Users (Admin) ── */
+.users-card{background:linear-gradient(135deg,#F0FDF4,#ECFDF5);border:1px solid #86EFAC;
+  border-radius:14px;padding:1.4rem 1.6rem;margin-bottom:1.6rem;}
+.users-title{font-size:.82rem;font-weight:700;color:var(--green);letter-spacing:1.5px;
+  text-transform:uppercase;margin-bottom:.4rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;}
+.users-count{background:var(--green);color:#fff;padding:3px 12px;border-radius:20px;font-size:.74rem;}
+.users-sub{font-size:.78rem;color:var(--gray);margin-bottom:1rem;}
+.user-row{background:#fff;border:1px solid var(--border);border-radius:9px;padding:.8rem 1rem;
+  margin-bottom:.55rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem;}
+.user-info{flex:1;min-width:180px;}
+.user-name{font-weight:700;font-size:.88rem;color:var(--dark);}
+.user-meta{font-size:.74rem;color:var(--gray);margin-top:2px;}
+.user-acts{display:flex;gap:.4rem;flex-wrap:wrap;}
+.user-acts a,.user-acts button{padding:6px 12px;border-radius:6px;font-size:.74rem;font-weight:700;
+  border:none;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font-family:'Inter',sans-serif;text-decoration:none;}
+.ua-wa{background:var(--wa);color:#fff;}
+.ua-call{background:var(--navy);color:#fff;}
+.ua-mail{background:var(--amber);color:var(--dark);}
+.ua-del{background:#FEE2E2;color:#991B1B;}
+.users-empty{text-align:center;padding:1.2rem;color:var(--gray);font-size:.82rem;background:#fff;border-radius:8px;}
+.broadcast-box{background:#fff;border:1px solid var(--border);border-radius:9px;padding:1rem;margin-top:.9rem;}
+.broadcast-box label{font-size:.74rem;font-weight:600;color:var(--gray);text-transform:uppercase;display:block;margin-bottom:5px;}
+.broadcast-box textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;
+  font-family:'Inter',sans-serif;font-size:.85rem;outline:none;resize:vertical;min-height:70px;}
+.broadcast-btn{margin-top:.6rem;background:var(--teal);color:#fff;border:none;padding:9px 18px;
+  border-radius:7px;font-weight:700;font-size:.82rem;cursor:pointer;font-family:'Inter',sans-serif;}
+
 @keyframes riseUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 
 @media(max-width:960px){.nav-center{display:none;}.hbg{display:flex;}.nav-adm{display:none;}}
@@ -616,6 +713,7 @@ footer strong{color:var(--amber2);}
         <div class="lang-option" onclick="setLang('ta')">🇮🇳 தமிழ்</div>
       </div>
     </div>
+    <button class="nav-auth" id="navAuthBtn" onclick="showAuth()">👤 Sign In</button>
     <a href="#contact" class="nav-cta" data-t="nav_cta">📞 Call Us</a>
   </div>
   <button class="hbg" onclick="toggleMob()"><span></span><span></span><span></span></button>
@@ -628,6 +726,7 @@ footer strong{color:var(--amber2);}
   <a href="#about" onclick="closeMob()">ℹ️ About Us</a>
   <a href="#gallery" onclick="closeMob()">🖼️ Gallery</a>
   <a href="#contact" onclick="closeMob()">📞 Contact</a>
+  <a href="#" id="mobAuthBtn" onclick="showAuth();closeMob();return false;">👤 Sign In / Register</a>
   <a href="#" onclick="openAdm();closeMob();return false;">⚙️ Admin Panel</a>
   <div class="mob-lang">
     <button class="mob-lang-btn active" onclick="setLang('en');closeMob()">🇬🇧 EN</button>
@@ -654,6 +753,7 @@ footer strong{color:var(--amber2);}
     <div><div class="stat-n">50+</div><div class="stat-l">Projects Done</div></div>
     <div><div class="stat-n">10+</div><div class="stat-l">Years Exp.</div></div>
     <div><div class="stat-n">6+</div><div class="stat-l">Active Listings</div></div>
+    <div><div class="stat-n" id="liveVisitors">—</div><div class="stat-l">👁 Visitors</div></div>
   </div>
   <div class="hero-chips">
     <div class="hchip">🏘️ Layouts & Plots</div>
@@ -812,6 +912,19 @@ footer strong{color:var(--amber2);}
       </div>
     </div>
 
+    <!-- EMAILJS NOTIFICATION SETUP -->
+    <div class="fb-setup" id="ejsSetupCard" style="background:linear-gradient(135deg,#FEF3F2,#FFF7F5);border-color:#FCA5A5;">
+      <h3>📧 Email Notifications <span class="fb-setup-status warn" id="ejsStatusBadge">⚠️ Not Connected</span></h3>
+      <p style="font-size:.83rem;color:var(--gray);margin-top:.3rem;">Get an email every time someone registers on your website. Free 200 emails/month from EmailJS.</p>
+      <div class="fb-steps">
+        <div class="fb-step"><div class="fb-step-num">1</div><div class="fb-step-txt">Go to <a href="https://www.emailjs.com" target="_blank">emailjs.com</a> → Sign Up (free) → Add a new <strong>Email Service</strong> → choose <strong>Gmail</strong> → connect your Gmail account → note the <code>Service ID</code></div></div>
+        <div class="fb-step"><div class="fb-step-num">2</div><div class="fb-step-txt">Click <strong>Email Templates → Create New Template</strong>. In the template content use these variables: <code>{{user_name}}</code>, <code>{{user_phone}}</code>, <code>{{user_email}}</code>, <code>{{user_interest}}</code>, <code>{{reg_time}}</code>. Save → note the <code>Template ID</code></div></div>
+        <div class="fb-step"><div class="fb-step-num">3</div><div class="fb-step-txt">Click <strong>Account → API Keys</strong> → copy your <strong>Public Key</strong></div></div>
+        <div class="fb-step"><div class="fb-step-num">4</div><div class="fb-step-txt">Open <code>index.html</code> → find <code>EMAILJS_CONFIG</code> near the top → paste your Public Key, Service ID, Template ID, and your owner email → save → re-upload to Vercel</div></div>
+        <div class="fb-step"><div class="fb-step-num">5</div><div class="fb-step-txt">Test by registering a new user on the website. You should receive an email within seconds. ✅</div></div>
+      </div>
+    </div>
+
     <!-- VERCEL DEPLOY GUIDE -->
     <div class="deploy-guide">
       <h3>🚀 Deploy on Vercel (Step by Step)</h3>
@@ -819,7 +932,7 @@ footer strong{color:var(--amber2);}
       <div class="dstep"><div class="dstep-num">2</div><div class="dstep-txt"><strong>Go to <a href="https://vercel.com" target="_blank">vercel.com</a></strong> → Click "Sign Up" → Choose "Continue with Google" → Free account.</div></div>
       <div class="dstep"><div class="dstep-num">3</div><div class="dstep-txt"><strong>Click "Add New Project"</strong> → Choose "Upload" → Drag and drop your <code>sma-project</code> folder → Click Deploy. Your site goes live in 30 seconds!</div></div>
       <div class="dstep"><div class="dstep-num">4</div><div class="dstep-txt"><strong>You'll get a free link</strong> like <code>sma-project.vercel.app</code> — share this with anyone to test.</div></div>
-      <div class="dstep"><div class="dstep-num">5</div><div class="dstep-txt"><strong>Connect your GoDaddy domain</strong> → In Vercel: Project Settings → Domains → Add <code>smaproperties.com</code> → Vercel shows you DNS values to add in GoDaddy (see table below).</div></div>
+      <div class="dstep"><div class="dstep-num">5</div><div class="dstep-txt"><strong>Connect your GoDaddy domain</strong> → In Vercel: Project Settings → Domains → Add <code>smaproperties.in</code> → Vercel shows you DNS values to add in GoDaddy (see table below).</div></div>
     </div>
 
     <!-- GODADDY DNS GUIDE -->
@@ -831,7 +944,7 @@ footer strong{color:var(--amber2);}
         <tr><td>A</td><td>@</td><td>76.76.21.21</td><td>600</td></tr>
         <tr><td>CNAME</td><td>www</td><td>cname.vercel-dns.com</td><td>600</td></tr>
       </table>
-      <p style="font-size:.78rem;color:var(--gray);margin-top:.8rem;">⏱️ DNS changes take 10 minutes to 24 hours to work. After that, <strong>smaproperties.com</strong> will open your website!</p>
+      <p style="font-size:.78rem;color:var(--gray);margin-top:.8rem;">⏱️ DNS changes take 10 minutes to 24 hours to work. After that, <strong>smaproperties.in</strong> will open your website!</p>
     </div>
 
     <!-- VISITOR STATS -->
@@ -847,6 +960,21 @@ footer strong{color:var(--amber2);}
       <div class="vrecent-title">Recent Visits</div>
       <div id="vrecent-list"></div>
       <button class="vreset" onclick="resetLocalStats()">🗑️ Reset Local Stats</button>
+    </div>
+
+    <!-- REGISTERED USERS -->
+    <div class="users-card">
+      <div class="users-title">
+        <span>👥 Registered Users</span>
+        <span class="users-count" id="usersCount">0</span>
+      </div>
+      <div class="users-sub">All users who registered on the website. Click to call, WhatsApp, or email them.</div>
+      <div id="usersList"></div>
+      <div class="broadcast-box">
+        <label>📢 Broadcast WhatsApp Message (opens WhatsApp links for each user)</label>
+        <textarea id="broadcastMsg" placeholder="Hi! New properties available at SMA Builders. Visit smaproperties.in for details."></textarea>
+        <button class="broadcast-btn" onclick="broadcastWA()">📤 Send to All Users</button>
+      </div>
     </div>
 
     <button class="addbtn" onclick="addProp()">➕ Add New Property</button>
@@ -907,6 +1035,47 @@ footer strong{color:var(--amber2);}
         <button class="qb" onclick="quickEnq()">💬 Send to WhatsApp Now →</button>
         <div class="qok" id="qOk">✅ Opening WhatsApp! We'll contact you shortly.</div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH MODAL (Optional Sign In / Sign Up) -->
+<div class="auth-ovl" id="authOvl" onclick="if(event.target===this)hideAuth()">
+  <div class="auth-box">
+    <div class="auth-head">
+      <h3 id="authTitle">Welcome to SMA</h3>
+      <button class="auth-x" onclick="hideAuth()">✕</button>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab on" id="tabLogin" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab" id="tabReg" onclick="switchAuthTab('register')">Register</button>
+    </div>
+    <div class="auth-body">
+      <!-- LOGIN -->
+      <div id="loginForm">
+        <label>Email or Phone</label>
+        <input type="text" id="liEmail" placeholder="you@example.com or 9876543210">
+        <label>Password</label>
+        <input type="password" id="liPw" placeholder="••••••••">
+        <button class="auth-btn" onclick="doLogin()">🔐 Sign In</button>
+        <p class="auth-note">Don't have an account? Click <strong>Register</strong> above.<br>Browsing the site does <strong>not</strong> require an account.</p>
+      </div>
+      <!-- REGISTER -->
+      <div id="regForm" style="display:none;">
+        <label>Full Name *</label>
+        <input type="text" id="rgName" placeholder="Your full name">
+        <label>Phone Number *</label>
+        <input type="tel" id="rgPhone" placeholder="9876543210" maxlength="15">
+        <label>Email (optional)</label>
+        <input type="email" id="rgEmail" placeholder="you@example.com">
+        <label>Password *</label>
+        <input type="password" id="rgPw" placeholder="Minimum 6 characters">
+        <label>Interested In (optional)</label>
+        <input type="text" id="rgInterest" placeholder="Plots / Flats / Houses / Land">
+        <button class="auth-btn" onclick="doRegister()">✨ Create Account</button>
+        <p class="auth-note">By registering, you allow SMA Builders to contact you about properties.</p>
+      </div>
+      <div class="auth-msg" id="authMsg"></div>
     </div>
   </div>
 </div>
@@ -1130,17 +1299,25 @@ function resetLocalStats(){
 /* ADMIN */
 const ADM_PW='sma2025';
 function openAdm(){
-  const pw=prompt('🔐 Enter Admin Password:');
-  if(pw===null)return;
-  if(pw!==ADM_PW){alert('❌ Incorrect password.');return;}
+  const cu=getCurrentUser();
+  if(!(cu&&cu.isAdmin)){
+    const pw=prompt('🔐 Enter Admin Password (or sign in as an admin user):');
+    if(pw===null)return;
+    if(pw!==ADM_PW){alert('❌ Incorrect password.');return;}
+  }
   document.getElementById('sw').classList.add('hidden');
   document.getElementById('admWrap').classList.add('open');
-  window.scrollTo(0,0);renderTabs();renderVStats();
+  window.scrollTo(0,0);renderTabs();renderVStats();renderUsers();
   // Update Firebase status badge
   const badge=document.getElementById('fbStatusBadge');
   if(window._fbReady){
     badge.textContent='✅ Connected';badge.className='fb-setup-status ok';
     document.getElementById('fbSetupCard').style.borderColor='var(--green)';
+  }
+  const ejsBadge=document.getElementById('ejsStatusBadge');
+  if(window.EMAILJS_READY){
+    ejsBadge.textContent='✅ Connected';ejsBadge.className='fb-setup-status ok';
+    document.getElementById('ejsSetupCard').style.borderColor='var(--green)';
   }
 }
 function closeAdm(){document.getElementById('admWrap').classList.remove('open');document.getElementById('sw').classList.remove('hidden');renderCards();}
@@ -1249,10 +1426,224 @@ setTimeout(()=>{
   }
 },2000);
 
+/* ══ AUTH (Optional Sign In / Sign Up) ══ */
+const UKEY='sma_user_v1';
+function getCurrentUser(){try{return JSON.parse(localStorage.getItem(UKEY));}catch(e){return null;}}
+function setCurrentUser(u){if(u)localStorage.setItem(UKEY,JSON.stringify(u));else localStorage.removeItem(UKEY);updateAuthBtn();}
+
+function updateAuthBtn(){
+  const u=getCurrentUser();
+  const btn=document.getElementById('navAuthBtn');
+  const mob=document.getElementById('mobAuthBtn');
+  if(u){
+    if(btn){btn.textContent='👋 '+(u.name||'Account');btn.classList.add('in');btn.onclick=()=>{if(confirm('Sign out?')){setCurrentUser(null);}};}
+    if(mob){mob.textContent='👋 '+(u.name||'Account')+' (Sign Out)';mob.onclick=(e)=>{e.preventDefault();if(confirm('Sign out?')){setCurrentUser(null);closeMob();}return false;};}
+  } else {
+    if(btn){btn.textContent='👤 Sign In';btn.classList.remove('in');btn.onclick=showAuth;}
+    if(mob){mob.textContent='👤 Sign In / Register';mob.onclick=(e)=>{e.preventDefault();showAuth();closeMob();return false;};}
+  }
+}
+
+function showAuth(){document.getElementById('authOvl').classList.add('open');document.body.style.overflow='hidden';switchAuthTab('login');clearAuthMsg();}
+function hideAuth(){document.getElementById('authOvl').classList.remove('open');document.body.style.overflow='';}
+function switchAuthTab(t){
+  document.getElementById('tabLogin').classList.toggle('on',t==='login');
+  document.getElementById('tabReg').classList.toggle('on',t==='register');
+  document.getElementById('loginForm').style.display=t==='login'?'block':'none';
+  document.getElementById('regForm').style.display=t==='register'?'block':'none';
+  clearAuthMsg();
+}
+function authMsg(txt,kind){const m=document.getElementById('authMsg');m.textContent=txt;m.className='auth-msg '+kind;}
+function clearAuthMsg(){const m=document.getElementById('authMsg');m.textContent='';m.className='auth-msg';}
+
+async function hashPw(pw){
+  try{
+    const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }catch(e){return 'plain:'+pw;}
+}
+
+function userKey(emailOrPhone){return String(emailOrPhone).trim().toLowerCase().replace(/[.#$/[\]@]/g,'_');}
+
+async function doRegister(){
+  const name=document.getElementById('rgName').value.trim();
+  const phone=document.getElementById('rgPhone').value.trim();
+  const email=document.getElementById('rgEmail').value.trim();
+  const pw=document.getElementById('rgPw').value;
+  const interest=document.getElementById('rgInterest').value.trim();
+  if(!name||!phone||!pw){authMsg('Please fill name, phone, and password.','err');return;}
+  if(pw.length<6){authMsg('Password must be at least 6 characters.','err');return;}
+  if(!/^[0-9+\-\s]{7,15}$/.test(phone)){authMsg('Enter a valid phone number.','err');return;}
+  const pwHash=await hashPw(pw);
+  const key=userKey(email||phone);
+  const userData={name,phone,email:email||'',interest:interest||'',pwHash,createdAt:new Date().toISOString(),createdAtIN:new Date().toLocaleString('en-IN')};
+
+  if(window._fbReady){
+    try{
+      // Check duplicate
+      const existing=await window._fbGet(window._fbRef(window._fbDB,'users/'+key));
+      if(existing.exists()){authMsg('An account with this email/phone already exists. Please sign in.','err');return;}
+      await window._fbSet(window._fbRef(window._fbDB,'users/'+key),userData);
+    }catch(e){authMsg('Could not save to server. Try again.','err');return;}
+  } else {
+    // Local fallback
+    const allLocal=JSON.parse(localStorage.getItem('sma_users_local')||'{}');
+    if(allLocal[key]){authMsg('An account with this email/phone already exists.','err');return;}
+    allLocal[key]=userData;
+    localStorage.setItem('sma_users_local',JSON.stringify(allLocal));
+  }
+  setCurrentUser({key,name,phone,email});
+  authMsg('✅ Account created! You are now signed in.','ok');
+  notifyOwnerOfRegistration(userData).catch(()=>{});
+  setTimeout(hideAuth,1200);
+}
+
+async function notifyOwnerOfRegistration(u){
+  if(!window.EMAILJS_READY)return;
+  const cfg=window.EMAILJS_CONFIG;
+  try{
+    await window.emailjs.send(cfg.serviceId,cfg.templateId,{
+      to_email:    cfg.ownerEmail,
+      user_name:   u.name||'',
+      user_phone:  u.phone||'',
+      user_email:  u.email||'(not provided)',
+      user_interest: u.interest||'(not specified)',
+      reg_time:    u.createdAtIN||u.createdAt||new Date().toString()
+    });
+    console.log('📧 Owner notified of new registration');
+  }catch(e){console.warn('EmailJS send failed:',e);}
+}
+
+async function doLogin(){
+  const id=document.getElementById('liEmail').value.trim();
+  const pw=document.getElementById('liPw').value;
+  if(!id||!pw){authMsg('Enter email/phone and password.','err');return;}
+  const key=userKey(id);
+  const pwHash=await hashPw(pw);
+  let user=null;
+  if(window._fbReady){
+    try{
+      const snap=await window._fbGet(window._fbRef(window._fbDB,'users/'+key));
+      if(snap.exists())user=snap.val();
+    }catch(e){authMsg('Could not connect to server.','err');return;}
+  } else {
+    const allLocal=JSON.parse(localStorage.getItem('sma_users_local')||'{}');
+    user=allLocal[key]||null;
+  }
+  if(!user){authMsg('No account found. Please register first.','err');return;}
+  if(user.pwHash!==pwHash){authMsg('Incorrect password.','err');return;}
+  setCurrentUser({key,name:user.name,phone:user.phone,email:user.email,isAdmin:user.isAdmin===true});
+  authMsg('✅ Signed in. Welcome, '+user.name+'!'+(user.isAdmin?' (Admin)':''),'ok');
+  setTimeout(hideAuth,1000);
+}
+
+/* ══ ADMIN: USERS LIST ══ */
+async function renderUsers(){
+  const list=document.getElementById('usersList');
+  const countEl=document.getElementById('usersCount');
+  let users={};
+  if(window._fbReady){
+    try{
+      const snap=await window._fbGet(window._fbRef(window._fbDB,'users'));
+      if(snap.exists())users=snap.val();
+    }catch(e){}
+  } else {
+    users=JSON.parse(localStorage.getItem('sma_users_local')||'{}');
+  }
+  const entries=Object.entries(users);
+  countEl.textContent=entries.length;
+  if(!entries.length){list.innerHTML='<div class="users-empty">No registered users yet. Share your website to get registrations!</div>';return;}
+  list.innerHTML=entries.sort((a,b)=>(b[1].createdAt||'').localeCompare(a[1].createdAt||'')).map(([k,u])=>{
+    const phone=(u.phone||'').replace(/[^0-9]/g,'');
+    const waLink=phone?`https://wa.me/${phone.length===10?'91'+phone:phone}?text=${encodeURIComponent('Hi '+(u.name||'')+', this is SMA Builders.')}`:'#';
+    const mailLink=u.email?`mailto:${u.email}?subject=${encodeURIComponent('SMA Builders & Real Estates')}`:'';
+    const adminBadge=u.isAdmin?'<span style="background:var(--amber);color:var(--dark);padding:1px 8px;border-radius:10px;font-size:.66rem;font-weight:700;margin-left:6px;">⭐ ADMIN</span>':'';
+    const adminBtn=u.isAdmin
+      ? `<button class="ua-del" style="background:#FEF3C7;color:#92400E;" onclick="toggleAdmin('${k}',false)">⬇ Demote</button>`
+      : `<button class="ua-mail" onclick="toggleAdmin('${k}',true)">⭐ Promote</button>`;
+    return `<div class="user-row">
+      <div class="user-info">
+        <div class="user-name">${esc(u.name||'(no name)')}${adminBadge}</div>
+        <div class="user-meta">📞 ${esc(u.phone||'-')} ${u.email?'• ✉ '+esc(u.email):''} ${u.interest?'• 🏠 '+esc(u.interest):''}</div>
+        <div class="user-meta" style="opacity:.7">Joined: ${esc(u.createdAtIN||u.createdAt||'-')}</div>
+      </div>
+      <div class="user-acts">
+        ${phone?`<a class="ua-wa" href="${waLink}" target="_blank">💬 WhatsApp</a>`:''}
+        ${phone?`<a class="ua-call" href="tel:+${phone.length===10?'91'+phone:phone}">📞 Call</a>`:''}
+        ${mailLink?`<a class="ua-mail" href="${mailLink}">✉ Email</a>`:''}
+        ${adminBtn}
+        <button class="ua-del" onclick="deleteUser('${k}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function toggleAdmin(key,makeAdmin){
+  const verb=makeAdmin?'PROMOTE this user to ADMIN':'REMOVE admin rights from this user';
+  if(!confirm(`Are you sure you want to ${verb}?`))return;
+  if(window._fbReady){
+    try{
+      await window._fbSet(window._fbRef(window._fbDB,'users/'+key+'/isAdmin'),makeAdmin?true:null);
+    }catch(e){alert('Could not update. Check Firebase rules.');return;}
+  } else {
+    const all=JSON.parse(localStorage.getItem('sma_users_local')||'{}');
+    if(!all[key])return;
+    if(makeAdmin)all[key].isAdmin=true;else delete all[key].isAdmin;
+    localStorage.setItem('sma_users_local',JSON.stringify(all));
+  }
+  const cu=getCurrentUser();
+  if(cu && cu.key===key){cu.isAdmin=!!makeAdmin;setCurrentUser(cu);}
+  renderUsers();
+}
+
+async function deleteUser(key){
+  if(!confirm('Delete this user permanently?'))return;
+  if(window._fbReady){
+    try{await window._fbSet(window._fbRef(window._fbDB,'users/'+key),null);}catch(e){alert('Could not delete.');return;}
+  } else {
+    const all=JSON.parse(localStorage.getItem('sma_users_local')||'{}');
+    delete all[key];
+    localStorage.setItem('sma_users_local',JSON.stringify(all));
+  }
+  renderUsers();
+}
+
+async function broadcastWA(){
+  const msg=document.getElementById('broadcastMsg').value.trim();
+  if(!msg){alert('Type a message first.');return;}
+  let users={};
+  if(window._fbReady){
+    try{const snap=await window._fbGet(window._fbRef(window._fbDB,'users'));if(snap.exists())users=snap.val();}catch(e){}
+  } else {
+    users=JSON.parse(localStorage.getItem('sma_users_local')||'{}');
+  }
+  const entries=Object.values(users).filter(u=>u.phone);
+  if(!entries.length){alert('No users with phone numbers.');return;}
+  if(!confirm(`This will open ${entries.length} WhatsApp tabs (one per user). Continue?`))return;
+  const enc=encodeURIComponent(msg);
+  entries.forEach((u,i)=>{
+    const phone=u.phone.replace(/[^0-9]/g,'');
+    const num=phone.length===10?'91'+phone:phone;
+    setTimeout(()=>window.open(`https://wa.me/${num}?text=${enc}`,'_blank'),i*400);
+  });
+}
+
+/* ══ LIVE VISITOR COUNT (hero) ══ */
+async function showLiveVisitorCount(){
+  const el=document.getElementById('liveVisitors');if(!el)return;
+  if(window._fbReady && window._getVisitorStatsFirebase){
+    const s=await window._getVisitorStatsFirebase();
+    if(s){el.textContent=s.total;return;}
+  }
+  const v=loadVisits();el.textContent=v.total||1;
+}
+
 /* INIT */
 document.getElementById('yr').textContent=new Date().getFullYear();
 recordVisit();
 renderCards();
+updateAuthBtn();
+setTimeout(showLiveVisitorCount,1500);
 </script>
 </body>
 </html>
