@@ -1,16 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { Home, MessageCircle, Eye } from 'lucide-react';
-import { trackVisit, getVisitorCount } from '@/lib/visitors';
+import { useEffect } from 'react';
+import { Home, MessageCircle } from 'lucide-react';
+import { trackVisit } from '@/lib/visitors';
 
 export function Hero() {
-  const [visitors, setVisitors] = useState<number | null>(null);
-
+  // Track visit anonymously — count is admin-only (visible in dashboard, not public)
   useEffect(() => {
     trackVisit('/');
-    getVisitorCount().then(setVisitors);
   }, []);
 
   return (
@@ -71,7 +69,6 @@ export function Hero() {
           <Stat n="50+" l="Projects Done" />
           <Stat n="10+" l="Years Exp." />
           <Stat n="6+" l="Active Listings" />
-          <Stat n={visitors ?? '—'} l="👁 Visitors" />
         </div>
 
         {/* Chips */}
@@ -90,7 +87,7 @@ export function Hero() {
   );
 }
 
-function Stat({ n, l }: { n: string | number; l: string }) {
+function Stat({ n, l }: { n: string; l: string }) {
   return (
     <div>
       <div className="font-display text-3xl sm:text-4xl font-black text-[var(--color-amber-light)]">

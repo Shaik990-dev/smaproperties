@@ -60,8 +60,25 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-10 pt-6 border-t border-white/10 text-xs text-white/40">
-        © {new Date().getFullYear()} SMA Builders & Real Estates. All Rights Reserved.
+      {/* Disclaimer band */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-10 pt-6 border-t border-white/10">
+        <div className="text-xs text-white/50 leading-relaxed">
+          <strong className="text-white/70">Disclaimer:</strong> Property images, dimensions, and prices shown on this website are indicative and subject to change without notice. Please verify all details and documents independently before making any purchase decision. Photographs may not reflect the current state of the property.
+        </div>
+        <div className="text-xs text-white/50 leading-relaxed mt-2">
+          <strong className="text-white/70">RERA Registration:</strong> [Project-specific RERA registration numbers will be provided on request before any sale agreement]
+        </div>
+
+        <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-white/10">
+          <p className="text-xs text-white/40">
+            © {new Date().getFullYear()} SMA Builders & Real Estates. All Rights Reserved.
+          </p>
+          <ul className="flex gap-5 text-xs text-white/60">
+            <li><Link href="/privacy" className="hover:text-[var(--color-amber-light)]">Privacy Policy</Link></li>
+            <li><Link href="/terms" className="hover:text-[var(--color-amber-light)]">Terms & Conditions</Link></li>
+            <li><Link href="/contact" className="hover:text-[var(--color-amber-light)]">Contact</Link></li>
+          </ul>
+        </div>
       </div>
     </footer>
   );

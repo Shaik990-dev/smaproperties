@@ -1,0 +1,52 @@
+{
+  "_README": [
+    "Firebase Realtime Database security rules for SMA Properties.",
+    "",
+    "HOW TO APPLY:",
+    "1. Go to Firebase Console → Realtime Database → Rules tab",
+    "2. Replace the existing rules with the contents of the 'rules' object below",
+    "   (do NOT copy this _README key — Firebase will reject it)",
+    "3. Click Publish",
+    "",
+    "WHAT THESE RULES DO:",
+    "- /properties: anyone can READ (so the public site works), only admins can WRITE",
+    "- /visitors:   anyone can WRITE a new visit (anonymous), only admins can READ the list",
+    "  (the public hero counter still works because count() goes through visitors-count below)",
+    "- /users:      each signed-in user can read/write their OWN profile; admins can read all",
+    "- /inquiries:  anyone can WRITE a new inquiry (lead capture), only admins can READ them",
+    "",
+    "ADMIN DETECTION:",
+    "Rules check root.child('users').child(auth.uid).child('isAdmin').val() === true",
+    "So you must set isAdmin: true on a user node BEFORE that user can perform admin writes.",
+    "",
+    "COMPATIBILITY:",
+    "These rules are designed for Firebase Authentication (UID-based).",
+    "If you have legacy users from the static site (keyed by sanitized email),",
+    "they will need to re-register before they can authenticate."
+  ],
+  "rules": {
+    "properties": {
+      ".read": true,
+      ".write": "auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true"
+    },
+    "visitors": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true",
+      "$visit": {
+        ".write": "!data.exists() && newData.hasChildren(['time'])"
+      }
+    },
+    "users": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('isAdmin').val() === true)"
+      }
+    },
+    "inquiries": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true",
+      "$id": {
+        ".write": "!data.exists() && newData.hasChildren(['name', 'phone', 'createdAt'])"
+      }
+    }
+  }
+}

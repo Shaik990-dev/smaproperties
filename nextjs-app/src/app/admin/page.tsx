@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import { ref, get, set } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { fetchProperties } from '@/lib/properties';
@@ -43,20 +44,35 @@ export default function AdminDashboard() {
 
   const toggleAdmin = async (uid: string, makeAdmin: boolean) => {
     if (!confirm(makeAdmin ? 'Promote this user to ADMIN?' : 'Remove admin rights?')) return;
-    await set(ref(db, `users/${uid}/isAdmin`), makeAdmin || null);
-    await loadAll();
+    try {
+      await set(ref(db, `users/${uid}/isAdmin`), makeAdmin || null);
+      toast.success(makeAdmin ? 'User promoted to admin' : 'Admin rights removed');
+      await loadAll();
+    } catch {
+      toast.error('Could not update user. Check Firebase rules.');
+    }
   };
 
   const deleteUserRow = async (uid: string) => {
     if (!confirm('Permanently delete this user from the database?')) return;
-    await set(ref(db, `users/${uid}`), null);
-    await loadAll();
+    try {
+      await set(ref(db, `users/${uid}`), null);
+      toast.success('User deleted');
+      await loadAll();
+    } catch {
+      toast.error('Could not delete user.');
+    }
   };
 
   const removeInquiry = async (id: string) => {
     if (!confirm('Delete this lead?')) return;
-    await deleteInquiry(id);
-    await loadAll();
+    try {
+      await deleteInquiry(id);
+      toast.success('Lead deleted');
+      await loadAll();
+    } catch {
+      toast.error('Could not delete lead.');
+    }
   };
 
   const userEntries = Object.entries(users).sort((a, b) =>

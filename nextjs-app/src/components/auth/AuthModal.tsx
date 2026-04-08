@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { registerUser, loginUser } from '@/lib/auth';
+import { notifyOwner } from '@/lib/emailjs';
 import { useAuth } from './AuthProvider';
 
 interface Props {
@@ -40,13 +42,16 @@ export function AuthModal({ open, onClose }: Props) {
     setLoading(true);
     setMsg(null);
     try {
-      await loginUser(email, password);
+      const u = await loginUser(email, password);
       await refresh();
+      toast.success(`Welcome back, ${u.name}!`);
       setMsg({ kind: 'ok', text: '✅ Signed in successfully' });
       setTimeout(handleClose, 700);
     } catch (err) {
       const m = err instanceof Error ? err.message : 'Sign in failed';
-      setMsg({ kind: 'err', text: m.replace('Firebase: ', '') });
+      const cleaned = m.replace('Firebase: ', '');
+      setMsg({ kind: 'err', text: cleaned });
+      toast.error(cleaned);
     } finally {
       setLoading(false);
     }
@@ -67,11 +72,16 @@ export function AuthModal({ open, onClose }: Props) {
     try {
       await registerUser({ name, phone, email, password, interest });
       await refresh();
+      // Notify owner by email (best-effort, non-blocking)
+      notifyOwner({ type: 'registration', name, phone, email, interest }).catch(() => {});
+      toast.success(`Welcome, ${name}! Your account has been created.`);
       setMsg({ kind: 'ok', text: '✅ Account created! You are now signed in.' });
       setTimeout(handleClose, 900);
     } catch (err) {
       const m = err instanceof Error ? err.message : 'Registration failed';
-      setMsg({ kind: 'err', text: m.replace('Firebase: ', '') });
+      const cleaned = m.replace('Firebase: ', '');
+      setMsg({ kind: 'err', text: cleaned });
+      toast.error(cleaned);
     } finally {
       setLoading(false);
     }

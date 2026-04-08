@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { MapPin, Clock, Phone, MessageCircle } from 'lucide-react';
 import { AGENTS, OFFICE } from '@/data/agents';
 import { waLink, telLink } from '@/lib/utils';
 import { saveInquiry } from '@/lib/inquiries';
+import { notifyOwner } from '@/lib/emailjs';
 
 export function Contact() {
   const [name, setName] = useState('');
@@ -16,21 +18,34 @@ export function Contact() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !phone) return;
+    if (!name || !phone) {
+      toast.error('Please enter your name and phone number.');
+      return;
+    }
     setSubmitting(true);
-    // Save lead to Firebase FIRST so we capture it even if WhatsApp fails
-    await saveInquiry({
-      name,
-      phone,
-      message: message || `Interested in: ${interest || 'General Enquiry'}`,
-      source: 'home_contact'
-    });
-    const text = `Hi SMA Builders! 🏠\n*Name:* ${name}\n*Phone:* ${phone}\n*Interested in:* ${interest || 'General Enquiry'}\n*Message:* ${message || '-'}`;
-    window.open(waLink('917396979572', text), '_blank');
-    setSent(true);
-    setSubmitting(false);
-    setName(''); setPhone(''); setInterest(''); setMessage('');
-    setTimeout(() => setSent(false), 5000);
+    try {
+      // 1. Save lead to Firebase FIRST so we capture it even if WhatsApp fails
+      await saveInquiry({
+        name,
+        phone,
+        message: message || `Interested in: ${interest || 'General Enquiry'}`,
+        source: 'home_contact'
+      });
+      // 2. Notify owner by email (best-effort, non-blocking on failure)
+      notifyOwner({ type: 'lead', name, phone, message, interest }).catch(() => {});
+      // 3. Open WhatsApp with pre-filled message
+      const text = `Hi SMA Builders! 🏠\n*Name:* ${name}\n*Phone:* ${phone}\n*Interested in:* ${interest || 'General Enquiry'}\n*Message:* ${message || '-'}`;
+      window.open(waLink('917396979572', text), '_blank');
+      toast.success("Enquiry received! We'll contact you shortly.");
+      setSent(true);
+      setName(''); setPhone(''); setInterest(''); setMessage('');
+      setTimeout(() => setSent(false), 5000);
+    } catch (err) {
+      console.error(err);
+      toast.error('Could not send enquiry. Please call us directly.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
