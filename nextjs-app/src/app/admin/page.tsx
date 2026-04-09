@@ -96,6 +96,23 @@ export default function AdminDashboard() {
         <StatCard icon={Home} label="Properties" value={props.length} color="bg-amber-500" />
       </div>
 
+      {/* Quick actions */}
+      <div className="mt-8 flex flex-wrap gap-3">
+        <Link
+          href="/admin/properties"
+          className="px-5 py-2.5 rounded-lg bg-[var(--color-amber)] text-gray-900 text-sm font-bold hover:bg-[var(--color-amber-light)]"
+        >
+          ➕ Manage Properties
+        </Link>
+        <Link
+          href="/properties"
+          target="_blank"
+          className="px-5 py-2.5 rounded-lg bg-[var(--color-navy)] text-white text-sm font-bold hover:bg-[var(--color-navy-light)]"
+        >
+          🏠 View Live Site
+        </Link>
+      </div>
+
       {/* Tabs */}
       <div className="mt-10 border-b border-gray-200">
         <nav className="flex gap-1 -mb-px">

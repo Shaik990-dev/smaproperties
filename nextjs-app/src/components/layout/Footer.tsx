@@ -32,6 +32,7 @@ export function Footer() {
           <ul className="space-y-2 text-sm">
             <li><Link href="/" className="hover:text-[var(--color-amber-light)]">Home</Link></li>
             <li><Link href="/properties" className="hover:text-[var(--color-amber-light)]">Properties</Link></li>
+            <li><Link href="/emi-calculator" className="hover:text-[var(--color-amber-light)]">EMI Calculator</Link></li>
             <li><Link href="/about" className="hover:text-[var(--color-amber-light)]">About Us</Link></li>
             <li><Link href="/contact" className="hover:text-[var(--color-amber-light)]">Contact</Link></li>
           </ul>

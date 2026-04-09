@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { MapPin, ArrowRight, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
+import { FavoriteButton } from './FavoriteButton';
 import type { Property } from '@/lib/types';
 
 export function PropertyCard({ property: p, index = 0 }: { property: Property; index?: number }) {
@@ -31,6 +32,9 @@ export function PropertyCard({ property: p, index = 0 }: { property: Property; i
             <Badge color={p.badgeColor}>{p.badge}</Badge>
           </div>
         )}
+        <div className="absolute top-3 right-3">
+          <FavoriteButton propertyId={p.id} size="sm" />
+        </div>
       </div>
 
       {/* Body */}
