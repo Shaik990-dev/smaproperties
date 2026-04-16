@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { Menu, X, User, Phone, Shield } from 'lucide-react';
+import { LanguageToggle } from './LanguageToggle';
 
 const NAV_LINKS = [
   { href: '/', label: 'Home' },
@@ -55,6 +56,7 @@ export function Navbar() {
 
           {/* Right side actions */}
           <div className="hidden md:flex items-center gap-3">
+            <LanguageToggle />
             {user ? (
               <div className="flex items-center gap-2">
                 <Link
@@ -123,6 +125,9 @@ export function Navbar() {
                   </Link>
                 </li>
               )}
+              <li className="px-4 py-2">
+                <LanguageToggle />
+              </li>
               <li className="pt-2 border-t border-white/10 mt-2">
                 {user ? (
                   <button
