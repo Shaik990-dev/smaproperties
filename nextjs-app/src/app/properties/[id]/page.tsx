@@ -8,6 +8,7 @@ import { PropertyMap } from '@/components/property/PropertyMap';
 import { Badge } from '@/components/ui/Badge';
 import { AGENTS } from '@/data/agents';
 import { waLink, telLink } from '@/lib/utils';
+import { breadcrumbJsonLd } from '@/lib/seo';
 import type { Property } from '@/lib/types';
 
 export const revalidate = 60;
@@ -28,19 +29,30 @@ export async function generateMetadata({
   const p = await getPropertyServer(id);
   if (!p) return { title: 'Property not found' };
 
-  const title = `${p.name} — ${p.typeLabel} | SMA Builders Nellore`;
-  const description = `${p.name} located at ${p.address}. ${p.availability}. ${p.tags.slice(0, 4).join(', ')}.`;
+  const title = `${p.name} — ${p.typeLabel} for Sale in Nellore | SMA Builders`;
+  const description = `${p.name} — ${p.typeLabel} located at ${p.address}. ${p.availability}. ${p.tags.slice(0, 4).join(', ')}. Buy from SMA Builders Nellore. Contact: 7396979572.`;
   const url = `https://smaproperties.in/properties/${p.id}`;
 
   return {
     title,
     description,
+    keywords: [
+      `${p.typeLabel} nellore`, `${p.type} for sale nellore`, p.name,
+      `buy ${p.type} nellore`, `${p.type} in nellore`, 'SMA builders nellore',
+      ...p.tags.slice(0, 5)
+    ],
     openGraph: {
       title,
       description,
       url,
       type: 'website',
-      images: p.pics?.length ? [{ url: p.pics[0], alt: p.name }] : []
+      images: p.pics?.length ? [{ url: p.pics[0], alt: p.name, width: 1200, height: 630 }] : []
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${p.name} — ${p.typeLabel} Nellore`,
+      description,
+      images: p.pics?.length ? [p.pics[0]] : []
     },
     alternates: { canonical: url }
   };
@@ -92,6 +104,11 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
   const enquiryMsg = `Hi SMA Builders! 🏠\nInterested in: *${p.name}*\nAddress: ${p.address}\nPlease share details.`;
   const jsonLd = buildJsonLd(p);
+  const breadcrumb = breadcrumbJsonLd([
+    { name: 'Home', url: 'https://smaproperties.in' },
+    { name: 'Properties', url: 'https://smaproperties.in/properties' },
+    { name: p.name, url: `https://smaproperties.in/properties/${p.id}` }
+  ]);
 
   // Get up to 3 similar properties (same type, excluding current)
   const all = await getPropertiesServer();
@@ -103,6 +120,10 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
       />
 
       <div className="bg-gray-50 min-h-screen">

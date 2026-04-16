@@ -25,33 +25,86 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: 'SMA Builders & Real Estates – Nellore | Plots, Houses, Flats',
+  title: {
+    default: 'SMA Builders & Real Estates Nellore – Plots, Houses, Flats, Land for Sale',
+    template: '%s | SMA Builders Nellore'
+  },
   description:
-    'SMA Builders & Real Estates – Buy plots, layouts, houses, flats & agricultural land in Nellore, Andhra Pradesh. Contact Sk. Ahamad: 7396979572 | Sk. Umar: 8886021688',
+    'SMA Builders & Real Estates Nellore – Buy DTCP approved plots, open layouts, 2BHK & 3BHK flats, individual houses, villas & agricultural land in Nellore, Andhra Pradesh. Best prices in Nellore district. Contact Sk. Ahamad: 7396979572 | Sk. Umar: 8886021688. Trusted since 2014.',
   keywords: [
-    'real estate nellore',
-    'plots nellore',
-    'houses nellore',
-    'flats nellore',
-    'agricultural land nellore',
-    'SMA builders',
-    'DTCP approved plots nellore'
+    // Brand
+    'SMA Builders', 'SMA Builders Nellore', 'SMA Real Estates', 'smaproperties', 'sma properties nellore',
+    // Property types
+    'plots in nellore', 'plots for sale in nellore', 'DTCP approved plots nellore',
+    'open plots nellore', 'residential plots nellore', 'house plots nellore',
+    'layouts in nellore', 'DTCP layouts nellore', 'approved layouts nellore',
+    'flats in nellore', 'flats for sale nellore', '2BHK flats nellore', '3BHK flats nellore',
+    'apartments in nellore', 'apartments for sale nellore',
+    'houses in nellore', 'houses for sale nellore', 'individual houses nellore',
+    'villas in nellore', 'independent houses nellore',
+    'land in nellore', 'land for sale nellore', 'agricultural land nellore',
+    'farm land nellore', 'commercial land nellore',
+    // General
+    'real estate nellore', 'property in nellore', 'property for sale nellore',
+    'nellore real estate', 'nellore properties', 'buy property nellore',
+    'best real estate nellore', 'top builders nellore', 'trusted builders nellore',
+    'real estate agents nellore', 'property dealers nellore',
+    // Locations
+    'plots padugupadu', 'properties kavali', 'plots gudur', 'land sullurpeta',
+    'real estate vedayapalem', 'plots muthukur', 'land atmakur nellore',
+    'properties buchireddypalem', 'plots venkatagiri', 'land rapur',
+    'nellore district properties', 'andhra pradesh real estate',
+    // Telugu keywords
+    'నెల్లూరు ప్లాట్లు', 'నెల్లూరు ఫ్లాట్లు', 'నెల్లూరు ఇళ్ళు', 'నెల్లూరు భూములు',
+    'నెల్లూరు రియల్ ఎస్టేట్', 'SMA బిల్డర్స్ నెల్లూరు'
   ],
   authors: [{ name: 'SMA Builders & Real Estates' }],
+  creator: 'SMA Builders & Real Estates Nellore',
+  publisher: 'SMA Builders & Real Estates',
   metadataBase: new URL('https://smaproperties.in'),
   openGraph: {
-    title: 'SMA Builders & Real Estates – Nellore',
-    description: 'Buy plots, houses, flats & agricultural land in Nellore, AP. Best prices guaranteed.',
+    title: 'SMA Builders & Real Estates – Plots, Houses, Flats in Nellore',
+    description: 'Buy DTCP approved plots, flats, houses, villas & agricultural land in Nellore, Andhra Pradesh. Best prices. Trusted since 2014. Call: 7396979572',
     url: 'https://smaproperties.in',
-    siteName: 'SMA Builders',
+    siteName: 'SMA Builders & Real Estates Nellore',
     locale: 'en_IN',
-    type: 'website'
+    type: 'website',
+    countryName: 'India'
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SMA Builders & Real Estates – Nellore',
+    description: 'Buy plots, flats, houses & land in Nellore. DTCP approved. Best prices. Call: 7396979572'
   },
   alternates: { canonical: 'https://smaproperties.in' },
+  category: 'Real Estate',
+  classification: 'Real Estate',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1
+    }
+  },
+  verification: {
+    // Add your Google Search Console verification code here
+    // google: 'your-google-verification-code',
+  },
   other: {
     'theme-color': '#0F2342',
     'apple-mobile-web-app-capable': 'yes',
-    'apple-mobile-web-app-status-bar-style': 'black-translucent'
+    'apple-mobile-web-app-status-bar-style': 'black-translucent',
+    'geo.region': 'IN-AP',
+    'geo.placename': 'Nellore',
+    'geo.position': '14.4426;79.9865',
+    'ICBM': '14.4426, 79.9865',
+    'distribution': 'global',
+    'rating': 'general',
+    'revisit-after': '3 days'
   }
 };
 
