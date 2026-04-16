@@ -91,8 +91,7 @@ export const metadata: Metadata = {
     }
   },
   verification: {
-    // Add your Google Search Console verification code here
-    // google: 'your-google-verification-code',
+    google: 'yn9XlTskhjGKBsZN5HDzMdogzaLNtT83kdo_OkmU4s4',
   },
   other: {
     'theme-color': '#0F2342',
