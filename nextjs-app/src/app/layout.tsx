@@ -5,6 +5,11 @@ import { Toaster } from 'sonner';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { AuthProvider } from '@/components/auth/AuthProvider';
+import { WhatsAppFloat } from '@/components/layout/WhatsAppFloat';
+import { ServiceWorkerRegister } from '@/components/layout/ServiceWorkerRegister';
+import { CompareProvider } from '@/components/property/CompareContext';
+import { CompareBar } from '@/components/property/CompareBar';
+import { LanguageProvider } from '@/components/layout/LanguageContext';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -42,18 +47,39 @@ export const metadata: Metadata = {
     locale: 'en_IN',
     type: 'website'
   },
-  alternates: { canonical: 'https://smaproperties.in' }
+  alternates: { canonical: 'https://smaproperties.in' },
+  other: {
+    'theme-color': '#0F2342',
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'black-translucent'
+  }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://firebasestorage.googleapis.com" />
+        <meta name="theme-color" content="#0F2342" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+      </head>
       <body>
         <AuthProvider>
-          <Navbar />
-          <main>{children}</main>
-          <Footer />
-          <Toaster position="top-right" richColors closeButton />
+          <LanguageProvider>
+          <CompareProvider>
+            <Navbar />
+            <main>{children}</main>
+            <Footer />
+            <CompareBar />
+            <WhatsAppFloat />
+            <ServiceWorkerRegister />
+            <Toaster position="top-right" richColors closeButton />
+          </CompareProvider>
+          </LanguageProvider>
         </AuthProvider>
       </body>
     </html>

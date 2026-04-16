@@ -6,15 +6,15 @@ import { toast } from 'sonner';
 import { ref, get, set } from 'firebase/database';
 import { db } from '@/lib/firebase';
 import { fetchProperties } from '@/lib/properties';
-import { getVisitorCount } from '@/lib/visitors';
 import { getInquiries, deleteInquiry, type Inquiry } from '@/lib/inquiries';
 import {
-  Users, Eye, Home, MessageCircle, Phone, Trash2, Star, Inbox, Mail
+  Users, Eye, Home, MessageCircle, Phone, Trash2, Star, Inbox, Mail, BarChart3
 } from 'lucide-react';
 import { waLink, telLink } from '@/lib/utils';
+import { AnalyticsTab } from '@/components/admin/AnalyticsTab';
 import type { AppUser, Property } from '@/lib/types';
 
-type Tab = 'overview' | 'leads' | 'users';
+type Tab = 'overview' | 'leads' | 'users' | 'analytics';
 
 export default function AdminDashboard() {
   const [tab, setTab] = useState<Tab>('overview');
@@ -22,17 +22,20 @@ export default function AdminDashboard() {
   const [props, setProps] = useState<Property[]>([]);
   const [inquiries, setInquiries] = useState<Record<string, Inquiry>>({});
   const [visitors, setVisitors] = useState<number>(0);
+  const [visitorsRaw, setVisitorsRaw] = useState<Record<string, { time: string; date: string; page: string; ref: string; ua: string }>>({});
   const [loading, setLoading] = useState(true);
 
   const loadAll = async () => {
-    const [propList, vCount, uSnap, inqs] = await Promise.all([
+    const [propList, uSnap, inqs, vSnap] = await Promise.all([
       fetchProperties(),
-      getVisitorCount(),
       get(ref(db, 'users')),
-      getInquiries()
+      getInquiries(),
+      get(ref(db, 'visitors'))
     ]);
     setProps(propList);
-    setVisitors(vCount);
+    const rawVisitors = vSnap.exists() ? vSnap.val() : {};
+    setVisitorsRaw(rawVisitors);
+    setVisitors(Object.keys(rawVisitors).length);
     setUsers(uSnap.exists() ? (uSnap.val() as Record<string, AppUser>) : {});
     setInquiries(inqs);
     setLoading(false);
@@ -121,6 +124,7 @@ export default function AdminDashboard() {
             📥 Leads {inquiryEntries.length > 0 && <span className="ml-1 px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 text-xs">{inquiryEntries.length}</span>}
           </TabBtn>
           <TabBtn active={tab === 'users'} onClick={() => setTab('users')}>👥 Users</TabBtn>
+          <TabBtn active={tab === 'analytics'} onClick={() => setTab('analytics')}>📊 Analytics</TabBtn>
         </nav>
       </div>
 
@@ -131,6 +135,8 @@ export default function AdminDashboard() {
           <OverviewTab inquiries={inquiryEntries.slice(0, 5)} users={userEntries.slice(0, 5)} />
         ) : tab === 'leads' ? (
           <LeadsTab inquiries={inquiryEntries} onDelete={removeInquiry} />
+        ) : tab === 'analytics' ? (
+          <AnalyticsTab visitors={visitorsRaw} inquiries={inquiryEntries} users={userEntries} />
         ) : (
           <UsersTab users={userEntries} onPromote={toggleAdmin} onDelete={deleteUserRow} />
         )}

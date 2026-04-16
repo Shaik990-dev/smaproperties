@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
-import { Save, Trash2, Plus, X } from 'lucide-react';
+import { Save, Trash2, Plus, X, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { saveProperty, deleteProperty } from '@/lib/properties';
+import { uploadPropertyImage, deletePropertyImage } from '@/lib/storage';
 import type { Property, PropertyType, PropertyDetail } from '@/lib/types';
 
 interface Props {
@@ -51,8 +52,12 @@ export function PropertyForm({ property, onSaved, onCancel }: Props) {
   const [detailsRaw, setDetailsRaw] = useState(
     (property?.details || []).map((d) => `${d.icon}|${d.label}|${d.value}`).join('\n')
   );
-  const [picsRaw, setPicsRaw] = useState((property?.pics || []).join('\n'));
+  const [pics, setPics] = useState<string[]>(property?.pics || []);
+  const [picsRaw, setPicsRaw] = useState('');
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Reset form when target property changes
   useEffect(() => {
@@ -60,12 +65,84 @@ export function PropertyForm({ property, onSaved, onCancel }: Props) {
       setP(property);
       setTagsRaw(property.tags.join(', '));
       setDetailsRaw(property.details.map((d) => `${d.icon}|${d.label}|${d.value}`).join('\n'));
-      setPicsRaw(property.pics.join('\n'));
+      setPics(property.pics || []);
     }
   }, [property]);
 
   const update = <K extends keyof Property>(key: K, value: Property[K]) => {
     setP((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    const validFiles = Array.from(files).filter((f) => {
+      if (!validTypes.includes(f.type)) {
+        toast.error(`${f.name}: Only JPG, PNG, WebP, GIF allowed`);
+        return false;
+      }
+      if (f.size > maxSize) {
+        toast.error(`${f.name}: Max size is 5MB`);
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
+
+    setUploading(true);
+    setUploadProgress(0);
+
+    try {
+      const urls: string[] = [];
+      for (let i = 0; i < validFiles.length; i++) {
+        const url = await uploadPropertyImage(validFiles[i], p.id, (prog) => {
+          const overall = Math.round(((i + prog.percent / 100) / validFiles.length) * 100);
+          setUploadProgress(overall);
+        });
+        urls.push(url);
+      }
+      setPics((prev) => [...prev, ...urls]);
+      toast.success(`${urls.length} image${urls.length > 1 ? 's' : ''} uploaded`);
+    } catch (e) {
+      console.error(e);
+      toast.error('Upload failed. Check Firebase Storage rules & sign in as admin.');
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const addUrlImages = () => {
+    const urls = picsRaw.split('\n').map((s) => s.trim()).filter((s) => s.startsWith('http'));
+    if (urls.length === 0) {
+      toast.error('No valid URLs found');
+      return;
+    }
+    setPics((prev) => [...prev, ...urls]);
+    setPicsRaw('');
+    toast.success(`${urls.length} URL${urls.length > 1 ? 's' : ''} added`);
+  };
+
+  const removeImage = async (index: number) => {
+    const url = pics[index];
+    setPics((prev) => prev.filter((_, i) => i !== index));
+    // Try to delete from storage if it's a Firebase Storage URL
+    if (url.includes('firebasestorage.googleapis.com')) {
+      await deletePropertyImage(url);
+    }
+  };
+
+  const moveImage = (index: number, direction: -1 | 1) => {
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= pics.length) return;
+    const newPics = [...pics];
+    [newPics[index], newPics[newIndex]] = [newPics[newIndex], newPics[index]];
+    setPics(newPics);
   };
 
   const handleSave = async () => {
@@ -87,7 +164,6 @@ export function PropertyForm({ property, onSaved, onCancel }: Props) {
         const parts = line.split('|').map((s) => s.trim());
         return { icon: parts[0] || '📌', label: parts[1] || '', value: parts[2] || '' };
       });
-    const pics = picsRaw.split('\n').map((s) => s.trim()).filter((s) => s.startsWith('http'));
 
     setSaving(true);
     try {
@@ -225,26 +301,122 @@ export function PropertyForm({ property, onSaved, onCancel }: Props) {
           />
         </Field>
 
-        <Field label="Photo URLs (one per line)">
-          <textarea
-            value={picsRaw}
-            onChange={(e) => setPicsRaw(e.target.value)}
-            className={inputCls + ' h-24 font-mono text-xs'}
-            placeholder={`https://images.unsplash.com/photo-1...\nhttps://images.unsplash.com/photo-2...`}
-          />
-          <p className="mt-1 text-xs text-gray-500">
-            Image upload to Firebase Storage coming in next sprint. For now paste image URLs (Unsplash, your own server, etc.)
-          </p>
+        {/* Image upload section */}
+        <Field label="Property Images">
+          <div className="space-y-4">
+            {/* Upload area */}
+            <div
+              className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-colors ${
+                uploading ? 'border-[var(--color-amber)] bg-amber-50' : 'border-gray-300 hover:border-[var(--color-navy)] hover:bg-gray-50'
+              }`}
+              onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleFileUpload(e.dataTransfer.files);
+              }}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                multiple
+                onChange={(e) => handleFileUpload(e.target.files)}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                disabled={uploading}
+              />
+              {uploading ? (
+                <div className="space-y-2">
+                  <Loader2 size={28} className="mx-auto text-[var(--color-amber)] animate-spin" />
+                  <p className="text-sm font-bold text-gray-700">Uploading... {uploadProgress}%</p>
+                  <div className="w-48 mx-auto h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-[var(--color-amber)] rounded-full transition-all" style={{ width: `${uploadProgress}%` }} />
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <Upload size={28} className="mx-auto text-gray-400 mb-2" />
+                  <p className="text-sm font-bold text-gray-700">Drag & drop images here or click to browse</p>
+                  <p className="text-xs text-gray-500 mt-1">JPG, PNG, WebP, GIF — max 5 MB each</p>
+                </div>
+              )}
+            </div>
+
+            {/* URL fallback */}
+            <div className="flex gap-2">
+              <input
+                value={picsRaw}
+                onChange={(e) => setPicsRaw(e.target.value)}
+                className={inputCls + ' text-xs font-mono flex-1'}
+                placeholder="Or paste image URLs (one per line) and click Add"
+              />
+              <button
+                type="button"
+                onClick={addUrlImages}
+                disabled={!picsRaw.trim()}
+                className="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 text-xs font-bold hover:bg-gray-200 disabled:opacity-50 flex-shrink-0"
+              >
+                <Plus size={14} className="inline mr-1" /> Add URLs
+              </button>
+            </div>
+
+            {/* Image preview grid */}
+            {pics.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                {pics.map((url, i) => (
+                  <div key={i} className="relative group rounded-lg overflow-hidden border border-gray-200 aspect-[4/3] bg-gray-100">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={url} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+                    {i === 0 && (
+                      <span className="absolute top-1 left-1 px-2 py-0.5 rounded bg-[var(--color-amber)] text-gray-900 text-[10px] font-bold">
+                        COVER
+                      </span>
+                    )}
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      {i > 0 && (
+                        <button
+                          onClick={() => moveImage(i, -1)}
+                          className="w-7 h-7 rounded-full bg-white text-gray-900 text-xs font-bold flex items-center justify-center"
+                          title="Move left"
+                        >
+                          ←
+                        </button>
+                      )}
+                      <button
+                        onClick={() => removeImage(i)}
+                        className="w-7 h-7 rounded-full bg-red-600 text-white flex items-center justify-center"
+                        title="Remove"
+                      >
+                        <X size={14} />
+                      </button>
+                      {i < pics.length - 1 && (
+                        <button
+                          onClick={() => moveImage(i, 1)}
+                          className="w-7 h-7 rounded-full bg-white text-gray-900 text-xs font-bold flex items-center justify-center"
+                          title="Move right"
+                        >
+                          →
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <p className="text-xs text-gray-500">
+              {pics.length} image{pics.length !== 1 ? 's' : ''} — first image is the cover photo
+            </p>
+          </div>
         </Field>
 
         {/* Actions */}
         <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
           <button
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || uploading}
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[var(--color-navy)] text-white font-bold disabled:opacity-60 hover:bg-[var(--color-navy-light)]"
           >
-            <Save size={16} /> {saving ? 'Saving…' : (isNew ? 'Create Property' : 'Save Changes')}
+            <Save size={16} /> {saving ? 'Saving...' : (isNew ? 'Create Property' : 'Save Changes')}
           </button>
           {!isNew && (
             <button

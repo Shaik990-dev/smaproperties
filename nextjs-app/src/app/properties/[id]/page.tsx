@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, MapPin, Phone, MessageCircle, CheckCircle } from 'lucide-react';
 import { getPropertiesServer, getPropertyServer } from '@/lib/firebase-server';
 import { PropertyGallery } from '@/components/property/PropertyGallery';
+import { PropertyMap } from '@/components/property/PropertyMap';
 import { Badge } from '@/components/ui/Badge';
 import { AGENTS } from '@/data/agents';
 import { waLink, telLink } from '@/lib/utils';
@@ -175,6 +176,9 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                   ))}
                 </div>
               </article>
+
+              {/* Map */}
+              <PropertyMap address={p.address} name={p.name} />
 
               {/* Similar properties */}
               {similar.length > 0 && (

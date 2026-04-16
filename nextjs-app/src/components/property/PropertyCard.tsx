@@ -3,9 +3,13 @@ import Image from 'next/image';
 import { MapPin, ArrowRight, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { FavoriteButton } from './FavoriteButton';
+import { CompareButton } from './CompareButton';
+import { useLang } from '@/components/layout/LanguageContext';
 import type { Property } from '@/lib/types';
 
 export function PropertyCard({ property: p, index = 0 }: { property: Property; index?: number }) {
+  const { lang } = useLang();
+  const displayName = lang === 'te' && p.nameLocal ? p.nameLocal : p.name;
   return (
     <Link
       href={`/properties/${p.id}`}
@@ -32,8 +36,9 @@ export function PropertyCard({ property: p, index = 0 }: { property: Property; i
             <Badge color={p.badgeColor}>{p.badge}</Badge>
           </div>
         )}
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-3 right-3 flex flex-col gap-1.5">
           <FavoriteButton propertyId={p.id} size="sm" />
+          <CompareButton property={p} size="sm" />
         </div>
       </div>
 
@@ -43,7 +48,7 @@ export function PropertyCard({ property: p, index = 0 }: { property: Property; i
           {p.typeLabel}
         </div>
         <h3 className="font-bold text-gray-900 text-lg leading-snug line-clamp-2">
-          {p.name}
+          {displayName}
         </h3>
         <div className="flex items-start gap-1.5 mt-2 text-gray-500 text-sm">
           <MapPin size={14} className="flex-shrink-0 mt-0.5" />
