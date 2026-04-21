@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { ref, get, set } from 'firebase/database';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import { fetchProperties } from '@/lib/properties';
 import { getInquiries, deleteInquiry, type Inquiry } from '@/lib/inquiries';
 import {
@@ -57,10 +57,21 @@ export default function AdminDashboard() {
   };
 
   const deleteUserRow = async (uid: string) => {
-    if (!confirm('Permanently delete this user from the database?')) return;
+    if (!confirm('Permanently delete this user (removes login access + database record)?')) return;
     try {
-      await set(ref(db, `users/${uid}`), null);
-      toast.success('User deleted');
+      const idToken = await auth?.currentUser?.getIdToken();
+      if (!idToken) { toast.error('Not authenticated.'); return; }
+      const res = await fetch('/api/admin/delete-user', {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${idToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid })
+      });
+      if (!res.ok) {
+        const data = await res.json() as { error?: string };
+        toast.error(data.error || 'Could not delete user.');
+        return;
+      }
+      toast.success('User deleted (auth + database)');
       await loadAll();
     } catch {
       toast.error('Could not delete user.');
