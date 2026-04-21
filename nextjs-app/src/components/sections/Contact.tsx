@@ -22,6 +22,10 @@ export function Contact() {
       toast.error('Please enter your name and phone number.');
       return;
     }
+    if (!/^[6-9]\d{9}$/.test(phone.replace(/[\s\-]/g, ''))) {
+      toast.error('Please enter a valid 10-digit Indian mobile number.');
+      return;
+    }
     setSubmitting(true);
     try {
       // 1. Save lead to Firebase FIRST so we capture it even if WhatsApp fails
@@ -35,7 +39,7 @@ export function Contact() {
       notifyOwner({ type: 'lead', name, phone, message, interest }).catch(() => {});
       // 3. Open WhatsApp with pre-filled message
       const text = `Hi SMA Builders! 🏠\n*Name:* ${name}\n*Phone:* ${phone}\n*Interested in:* ${interest || 'General Enquiry'}\n*Message:* ${message || '-'}`;
-      window.open(waLink('917396979572', text), '_blank');
+      window.open(waLink(AGENTS[0].whatsapp, text), '_blank');
       toast.success("Enquiry received! We'll contact you shortly.");
       setSent(true);
       setName(''); setPhone(''); setInterest(''); setMessage('');

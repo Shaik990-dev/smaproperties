@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { Menu, X, User, Phone, Shield } from 'lucide-react';
+import { AGENTS } from '@/data/agents';
 import { LanguageToggle } from './LanguageToggle';
 
 const NAV_LINKS = [
@@ -82,7 +83,7 @@ export function Navbar() {
               </button>
             )}
             <a
-              href="tel:+917396979572"
+              href={`tel:+91${AGENTS[0].phones[0]}`}
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-amber)] text-gray-900 text-sm font-bold hover:bg-[var(--color-amber-light)]"
             >
               <Phone size={14} /> Call Us

@@ -1,7 +1,7 @@
 const CACHE_NAME = 'sma-v1';
+const META_CACHE = 'sma-meta';
 const OFFLINE_URL = '/offline';
 
-// Pre-cache essential assets
 const PRECACHE_URLS = [
   '/',
   '/offline',
@@ -18,11 +18,27 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
+    (async () => {
+      try {
+        // Check current deploy version from the server
+        const res = await fetch('/api/sw-version', { cache: 'no-store' });
+        const { version } = await res.json();
+
+        const meta = await caches.open(META_CACHE);
+        const stored = await meta.match('version').then((r) => r?.text()).catch(() => null);
+
+        if (version && version !== stored) {
+          // New deploy detected — clear all content caches
+          const keys = await caches.keys();
+          await Promise.all(keys.filter((k) => k !== META_CACHE).map((k) => caches.delete(k)));
+          await meta.put('version', new Response(version));
+        }
+      } catch {
+        // Network unavailable — keep existing caches
+      }
+      await self.clients.claim();
+    })()
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
@@ -33,8 +49,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-first for static assets, network-first for API
-  if (event.request.destination === 'image' || event.request.destination === 'style' || event.request.destination === 'script') {
+  if (
+    event.request.destination === 'image' ||
+    event.request.destination === 'style' ||
+    event.request.destination === 'script'
+  ) {
     event.respondWith(
       caches.match(event.request).then((cached) => {
         return cached || fetch(event.request).then((response) => {

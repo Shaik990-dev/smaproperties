@@ -63,6 +63,10 @@ export function AuthModal({ open, onClose }: Props) {
       setMsg({ kind: 'err', text: 'Please fill all required fields' });
       return;
     }
+    if (!/^[6-9]\d{9}$/.test(phone.replace(/[\s\-]/g, ''))) {
+      setMsg({ kind: 'err', text: 'Enter a valid 10-digit Indian mobile number' });
+      return;
+    }
     if (password.length < 6) {
       setMsg({ kind: 'err', text: 'Password must be at least 6 characters' });
       return;
