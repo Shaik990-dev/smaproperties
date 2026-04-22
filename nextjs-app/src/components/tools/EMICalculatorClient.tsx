@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Calculator, Home, MessageCircle } from 'lucide-react';
 import { waLink } from '@/lib/utils';
+import { AGENTS } from '@/data/agents';
 
 function calcEMI(principal: number, annualRate: number, tenureYears: number) {
   if (principal <= 0 || annualRate <= 0 || tenureYears <= 0) {
@@ -82,7 +83,7 @@ export function EMICalculatorClient() {
                 <div className="flex justify-between text-xs text-white/50 mt-1"><span>Principal</span><span>Interest</span></div>
               </div>
             </div>
-            <a href={waLink('917396979572', `Hi SMA Builders! I used your EMI calculator. Loan: ${formatINR(principal)}, EMI: ${formatINR(emi)}/month. Please share suitable property options.`)} target="_blank" rel="noopener" className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-[var(--color-wa)] text-white font-bold hover:opacity-90">
+            <a href={waLink(AGENTS[0].whatsapp, `Hi SMA Builders! I used your EMI calculator. Loan: ${formatINR(principal)}, EMI: ${formatINR(emi)}/month. Please share suitable property options.`)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-[var(--color-wa)] text-white font-bold hover:opacity-90">
               <MessageCircle size={16} /> Discuss on WhatsApp
             </a>
             <Link href="/properties" className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-white border-2 border-gray-200 text-gray-800 font-bold hover:bg-gray-50">

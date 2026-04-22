@@ -81,7 +81,7 @@ export default function AdminPropertiesPage() {
                   >
                     {p.pics?.[0] ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.pics[0]} alt="" className="w-full h-full object-cover" />
+                      <img src={p.pics[0]} alt={p.name} className="w-full h-full object-cover" />
                     ) : (
                       p.emoji || '🏠'
                     )}
@@ -96,6 +96,7 @@ export default function AdminPropertiesPage() {
                   <Link
                     href={`/properties/${p.id}`}
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 text-xs font-bold hover:bg-gray-100"
                   >
                     👁 View

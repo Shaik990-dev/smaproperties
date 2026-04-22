@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { WifiOff } from 'lucide-react';
+import { AGENTS } from '@/data/agents';
 
 export const metadata = {
   title: 'Offline — SMA Builders',
@@ -22,7 +23,7 @@ export default function OfflinePage() {
         </Link>
         <div className="mt-8 text-sm text-gray-400">
           <p>Need help? Call us directly:</p>
-          <a href="tel:+917396979572" className="text-[var(--color-navy)] font-bold">+91 73969 79572</a>
+          <a href={`tel:+91${AGENTS[0].phones[0]}`} className="text-[var(--color-navy)] font-bold">+91 {AGENTS[0].phones[0]}</a>
         </div>
       </div>
     </div>

@@ -99,7 +99,7 @@ export function Contact() {
                   <a
                     href={waLink(a.whatsapp, `Hi ${a.name}!`)}
                     target="_blank"
-                    rel="noopener"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-wa)] text-white text-sm font-bold hover:opacity-90"
                   >
                     <MessageCircle size={14} /> WhatsApp

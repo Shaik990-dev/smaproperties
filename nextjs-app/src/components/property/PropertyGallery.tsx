@@ -62,7 +62,7 @@ export function PropertyGallery({ images, alt }: { images: string[]; alt: string
                 i === idx ? 'ring-2 ring-[var(--color-navy)]' : 'opacity-70 hover:opacity-100'
               }`}
             >
-              <Image src={src} alt="" fill sizes="120px" className="object-cover" />
+              <Image src={src} alt={`Property thumbnail ${i + 1}`} fill sizes="120px" className="object-cover" />
             </button>
           ))}
         </div>

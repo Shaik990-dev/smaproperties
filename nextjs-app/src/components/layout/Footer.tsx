@@ -51,7 +51,7 @@ export function Footer() {
                       <Phone size={12} /> {p}
                     </a>
                   ))}
-                  <a href={waLink(a.whatsapp)} target="_blank" rel="noopener" className="flex items-center gap-2 text-[var(--color-wa)] hover:opacity-80">
+                  <a href={waLink(a.whatsapp)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[var(--color-wa)] hover:opacity-80">
                     <MessageCircle size={12} /> WhatsApp
                   </a>
                 </div>

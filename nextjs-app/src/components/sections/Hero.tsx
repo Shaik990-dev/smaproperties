@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useEffect } from 'react';
 import { Home, MessageCircle } from 'lucide-react';
 import { trackVisit } from '@/lib/visitors';
+import { AGENTS } from '@/data/agents';
+import { waLink } from '@/lib/utils';
 
 export function Hero() {
   // Track visit anonymously — count is admin-only (visible in dashboard, not public)
@@ -54,9 +56,9 @@ export function Hero() {
             <Home size={18} /> View Properties
           </Link>
           <a
-            href="https://wa.me/917396979572?text=Hi%20SMA%20Builders!"
+            href={waLink(AGENTS[0].whatsapp, 'Hi SMA Builders!')}
             target="_blank"
-            rel="noopener"
+            rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-lg border-2 border-white/50 text-white font-semibold hover:bg-white/10 transition-all"
           >
             <MessageCircle size={18} /> WhatsApp Us

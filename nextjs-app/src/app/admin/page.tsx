@@ -121,6 +121,7 @@ export default function AdminDashboard() {
         <Link
           href="/properties"
           target="_blank"
+          rel="noopener noreferrer"
           className="px-5 py-2.5 rounded-lg bg-[var(--color-navy)] text-white text-sm font-bold hover:bg-[var(--color-navy-light)]"
         >
           🏠 View Live Site
@@ -254,7 +255,7 @@ function LeadsTab({ inquiries, onDelete }: { inquiries: [string, Inquiry][]; onD
               <div className="text-xs text-gray-400 mt-1">{q.createdAtIN}</div>
             </div>
             <div className="flex gap-1.5 flex-wrap">
-              <a href={waLink(phone, `Hi ${q.name}, this is SMA Builders.`)} target="_blank" rel="noopener" className="px-3 py-1.5 rounded-md bg-[var(--color-wa)] text-white text-xs font-bold inline-flex items-center gap-1">
+              <a href={waLink(phone, `Hi ${q.name}, this is SMA Builders.`)} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-md bg-[var(--color-wa)] text-white text-xs font-bold inline-flex items-center gap-1">
                 <MessageCircle size={12} /> WA
               </a>
               <a href={telLink(phone)} className="px-3 py-1.5 rounded-md bg-[var(--color-navy)] text-white text-xs font-bold inline-flex items-center gap-1">
@@ -316,7 +317,7 @@ function UsersTab({
             </div>
             <div className="flex flex-wrap gap-1.5">
               {phone && (
-                <a href={waLink(phone, `Hi ${u.name}, this is SMA Builders.`)} target="_blank" rel="noopener" className="px-3 py-1.5 rounded-md bg-[var(--color-wa)] text-white text-xs font-bold inline-flex items-center gap-1">
+                <a href={waLink(phone, `Hi ${u.name}, this is SMA Builders.`)} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-md bg-[var(--color-wa)] text-white text-xs font-bold inline-flex items-center gap-1">
                   <MessageCircle size={12} /> WA
                 </a>
               )}

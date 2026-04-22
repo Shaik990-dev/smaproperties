@@ -249,7 +249,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                       <a
                         href={waLink(a.whatsapp, enquiryMsg)}
                         target="_blank"
-                        rel="noopener"
+                        rel="noopener noreferrer"
                         className="inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[var(--color-wa)] text-white text-sm font-bold"
                       >
                         <MessageCircle size={14} /> WhatsApp
