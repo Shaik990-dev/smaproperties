@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { LegalLegalSection } from '@/components/ui/LegalLegalSection';
+import { LegalSection } from '@/components/ui/LegalSection';
 
 export const metadata: Metadata = {
   title: 'Terms & Conditions | SMA Builders & Real Estates',
