@@ -5,7 +5,7 @@ import emailjs from '@emailjs/browser';
 const PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || '';
 const SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || '';
 const TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || '';
-const OWNER_EMAIL = process.env.NEXT_PUBLIC_EMAILJS_OWNER_EMAIL || 'umarshaikk992@gmail.com';
+const OWNER_EMAIL = process.env.NEXT_PUBLIC_EMAILJS_OWNER_EMAIL || '';
 
 let initialized = false;
 
