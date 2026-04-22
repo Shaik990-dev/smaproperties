@@ -1,6 +1,6 @@
 'use client';
 
-import { ref, push, get } from 'firebase/database';
+import { ref, push } from 'firebase/database';
 import { db } from './firebase';
 
 export async function trackVisit(page: string) {
@@ -15,12 +15,3 @@ export async function trackVisit(page: string) {
   } catch {}
 }
 
-export async function getVisitorCount(): Promise<number> {
-  try {
-    const snap = await get(ref(db, 'visitors'));
-    if (!snap.exists()) return 0;
-    return Object.keys(snap.val()).length;
-  } catch {
-    return 0;
-  }
-}
