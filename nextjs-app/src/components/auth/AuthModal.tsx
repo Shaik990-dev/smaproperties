@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { X } from 'lucide-react';
 import { sendPasswordResetEmail } from 'firebase/auth';
@@ -17,18 +17,79 @@ interface Props {
 
 type Tab = 'login' | 'register' | 'forgot';
 
+// Rate-limit config
+const RL_KEY = 'sma-pwd-reset';
+const MAX_ATTEMPTS = 3;
+const COOLDOWN_S = 60;         // seconds between sends
+const LOCKOUT_MS = 12 * 60 * 60 * 1000; // 12 hours
+
+interface RLData {
+  attempts: number;
+  lastSentAt: number;   // ms timestamp
+  lockedUntil: number;  // ms timestamp, 0 = not locked
+}
+
+function loadRL(): RLData {
+  try {
+    const raw = localStorage.getItem(RL_KEY);
+    if (raw) return JSON.parse(raw) as RLData;
+  } catch {}
+  return { attempts: 0, lastSentAt: 0, lockedUntil: 0 };
+}
+
+function saveRL(d: RLData) {
+  localStorage.setItem(RL_KEY, JSON.stringify(d));
+}
+
 export function AuthModal({ open, onClose }: Props) {
   const { refresh } = useAuth();
   const [tab, setTab] = useState<Tab>('login');
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'err' | 'ok'; text: string } | null>(null);
 
-  // form state
+  // form fields
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [interest, setInterest] = useState('');
+
+  // rate-limit UI state
+  const [cooldown, setCooldown] = useState(0);       // seconds left before can resend
+  const [attemptsLeft, setAttemptsLeft] = useState(MAX_ATTEMPTS);
+  const [lockedSecs, setLockedSecs] = useState(0);   // seconds until lockout lifts
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Load rate-limit state whenever forgot tab opens
+  useEffect(() => {
+    if (tab !== 'forgot') return;
+    syncRL();
+  }, [tab]);
+
+  // Tick every second while on forgot tab
+  useEffect(() => {
+    if (tab !== 'forgot') return;
+    timerRef.current = setInterval(() => syncRL(), 1000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [tab]);
+
+  function syncRL() {
+    const rl = loadRL();
+    const now = Date.now();
+
+    if (rl.lockedUntil > now) {
+      setLockedSecs(Math.ceil((rl.lockedUntil - now) / 1000));
+      setCooldown(0);
+      setAttemptsLeft(0);
+      return;
+    }
+
+    setLockedSecs(0);
+    setAttemptsLeft(MAX_ATTEMPTS - rl.attempts);
+    const secsSinceLast = (now - rl.lastSentAt) / 1000;
+    const remaining = Math.max(0, Math.ceil(COOLDOWN_S - secsSinceLast));
+    setCooldown(remaining);
+  }
 
   if (!open) return null;
 
@@ -37,14 +98,19 @@ export function AuthModal({ open, onClose }: Props) {
     setMsg(null);
   };
 
-  const handleClose = () => { reset(); setTab('login'); onClose(); };
+  const handleClose = () => {
+    reset();
+    setTab('login');
+    if (timerRef.current) clearInterval(timerRef.current);
+    onClose();
+  };
 
   const switchTab = (t: Tab) => { setMsg(null); setTab(t); };
 
+  /* ── Login ── */
   const submitLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setMsg(null);
+    setLoading(true); setMsg(null);
     try {
       const u = await loginUser(email, password);
       await refresh();
@@ -52,31 +118,25 @@ export function AuthModal({ open, onClose }: Props) {
       setMsg({ kind: 'ok', text: '✅ Signed in successfully' });
       setTimeout(handleClose, 700);
     } catch (err) {
-      const m = err instanceof Error ? err.message : 'Sign in failed';
-      const cleaned = m.replace('Firebase: ', '');
+      const cleaned = (err instanceof Error ? err.message : 'Sign in failed').replace('Firebase: ', '');
       setMsg({ kind: 'err', text: cleaned });
       toast.error(cleaned);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
+  /* ── Register ── */
   const submitRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !phone || !email || !password) {
-      setMsg({ kind: 'err', text: 'Please fill all required fields' });
-      return;
+      setMsg({ kind: 'err', text: 'Please fill all required fields' }); return;
     }
     if (!/^[6-9]\d{9}$/.test(phone.replace(/[\s\-]/g, ''))) {
-      setMsg({ kind: 'err', text: 'Enter a valid 10-digit Indian mobile number' });
-      return;
+      setMsg({ kind: 'err', text: 'Enter a valid 10-digit Indian mobile number' }); return;
     }
     if (password.length < 6) {
-      setMsg({ kind: 'err', text: 'Password must be at least 6 characters' });
-      return;
+      setMsg({ kind: 'err', text: 'Password must be at least 6 characters' }); return;
     }
-    setLoading(true);
-    setMsg(null);
+    setLoading(true); setMsg(null);
     try {
       await registerUser({ name, phone, email, password, interest });
       await refresh();
@@ -85,36 +145,76 @@ export function AuthModal({ open, onClose }: Props) {
       setMsg({ kind: 'ok', text: '✅ Account created! You are now signed in.' });
       setTimeout(handleClose, 900);
     } catch (err) {
-      const m = err instanceof Error ? err.message : 'Registration failed';
-      const cleaned = m.replace('Firebase: ', '');
+      const cleaned = (err instanceof Error ? err.message : 'Registration failed').replace('Firebase: ', '');
       setMsg({ kind: 'err', text: cleaned });
       toast.error(cleaned);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
+  /* ── Forgot password ── */
   const submitForgot = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
-      setMsg({ kind: 'err', text: 'Please enter your email address' });
+    if (!email) { setMsg({ kind: 'err', text: 'Please enter your email address' }); return; }
+
+    // Guard: lockout
+    if (lockedSecs > 0) {
+      const hrs = Math.ceil(lockedSecs / 3600);
+      setMsg({ kind: 'err', text: `Too many attempts. Try again in ${hrs} hour${hrs > 1 ? 's' : ''}.` });
       return;
     }
-    setLoading(true);
-    setMsg(null);
+    // Guard: cooldown
+    if (cooldown > 0) {
+      setMsg({ kind: 'err', text: `Please wait ${cooldown}s before requesting another link.` });
+      return;
+    }
+
+    setLoading(true); setMsg(null);
     try {
       await sendPasswordResetEmail(auth, email);
-      setMsg({ kind: 'ok', text: '✅ Reset link sent! Check your inbox (and spam folder).' });
+
+      // Update rate-limit store
+      const rl = loadRL();
+      const newAttempts = rl.attempts + 1;
+      saveRL({
+        attempts: newAttempts,
+        lastSentAt: Date.now(),
+        lockedUntil: newAttempts >= MAX_ATTEMPTS ? Date.now() + LOCKOUT_MS : 0,
+      });
+      syncRL();
+
+      const left = MAX_ATTEMPTS - newAttempts;
+      const note = left > 0 ? ` (${left} attempt${left > 1 ? 's' : ''} left)` : '';
+      setMsg({
+        kind: 'ok',
+        text: `✅ Reset link sent to ${email}. Check your inbox and spam folder.${note}`,
+      });
       toast.success('Password reset email sent!');
     } catch (err) {
-      const m = err instanceof Error ? err.message : 'Failed to send reset email';
-      const cleaned = m.replace('Firebase: ', '');
-      setMsg({ kind: 'err', text: cleaned });
-      toast.error(cleaned);
-    } finally {
-      setLoading(false);
-    }
+      const code = (err as { code?: string }).code;
+      let text = 'Failed to send reset email. Please try again.';
+      if (code === 'auth/user-not-found') {
+        text = 'No account found with this email. Please register first.';
+      } else if (code === 'auth/invalid-email') {
+        text = 'Please enter a valid email address.';
+      } else if (code === 'auth/too-many-requests') {
+        text = 'Too many requests from Firebase. Please try again later.';
+      }
+      setMsg({ kind: 'err', text });
+      toast.error(text);
+    } finally { setLoading(false); }
   };
+
+  /* ── Helpers ── */
+  const fmtLock = (secs: number) => {
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    if (h > 0) return `${h}h ${m}m`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
+  };
+
+  const canSend = cooldown === 0 && lockedSecs === 0;
 
   return (
     <div
@@ -155,6 +255,7 @@ export function AuthModal({ open, onClose }: Props) {
         )}
 
         <div className="p-6">
+          {/* ── Login form ── */}
           {tab === 'login' && (
             <form onSubmit={submitLogin} className="space-y-3">
               <Field label="Email">
@@ -166,11 +267,8 @@ export function AuthModal({ open, onClose }: Props) {
                   placeholder="••••••••" className={inputCls} required />
               </Field>
               <div className="text-right">
-                <button
-                  type="button"
-                  onClick={() => switchTab('forgot')}
-                  className="text-xs text-[var(--color-navy)] hover:underline font-medium"
-                >
+                <button type="button" onClick={() => switchTab('forgot')}
+                  className="text-xs text-[var(--color-navy)] hover:underline font-medium">
                   Forgot password?
                 </button>
               </div>
@@ -184,6 +282,7 @@ export function AuthModal({ open, onClose }: Props) {
             </form>
           )}
 
+          {/* ── Register form ── */}
           {tab === 'register' && (
             <form onSubmit={submitRegister} className="space-y-3">
               <Field label="Full Name *">
@@ -215,26 +314,67 @@ export function AuthModal({ open, onClose }: Props) {
             </form>
           )}
 
+          {/* ── Forgot password form ── */}
           {tab === 'forgot' && (
-            <form onSubmit={submitForgot} className="space-y-4">
+            <div className="space-y-4">
               <p className="text-sm text-gray-600">
-                Enter your registered email address and we&apos;ll send you a link to reset your password.
+                Enter your registered email and we&apos;ll send a password reset link.
+                <br />
+                <span className="text-xs text-gray-400">
+                  Check your spam/junk folder if you don&apos;t see it within 2 minutes.
+                </span>
               </p>
-              <Field label="Email">
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com" className={inputCls} required autoFocus />
-              </Field>
-              <Button type="submit" disabled={loading} className="w-full">
-                {loading ? 'Sending…' : '📧 Send Reset Link'}
-              </Button>
-              <button
-                type="button"
-                onClick={() => switchTab('login')}
-                className="w-full text-sm text-[var(--color-navy)] hover:underline font-medium"
-              >
+
+              {/* Lockout banner */}
+              {lockedSecs > 0 && (
+                <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700 text-center">
+                  🔒 Too many attempts. Retry in <strong>{fmtLock(lockedSecs)}</strong>
+                </div>
+              )}
+
+              {/* Attempts indicator */}
+              {lockedSecs === 0 && (
+                <div className="flex gap-1.5 items-center">
+                  {Array.from({ length: MAX_ATTEMPTS }).map((_, i) => (
+                    <div
+                      key={i}
+                      className={`h-1.5 flex-1 rounded-full ${
+                        i < attemptsLeft ? 'bg-[var(--color-amber)]' : 'bg-gray-200'
+                      }`}
+                    />
+                  ))}
+                  <span className="text-xs text-gray-400 ml-1 whitespace-nowrap">
+                    {attemptsLeft}/{MAX_ATTEMPTS} attempts
+                  </span>
+                </div>
+              )}
+
+              <form onSubmit={submitForgot} className="space-y-3">
+                <Field label="Registered Email">
+                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com" className={inputCls} required autoFocus
+                    disabled={lockedSecs > 0} />
+                </Field>
+                <Button
+                  type="submit"
+                  disabled={loading || !canSend}
+                  className="w-full"
+                >
+                  {loading
+                    ? 'Sending…'
+                    : cooldown > 0
+                    ? `Resend in ${cooldown}s`
+                    : lockedSecs > 0
+                    ? `Locked — ${fmtLock(lockedSecs)}`
+                    : '📧 Send Reset Link'}
+                </Button>
+              </form>
+
+              <button type="button" onClick={() => switchTab('login')}
+                className="w-full text-sm text-[var(--color-navy)] hover:underline font-medium">
                 ← Back to Sign In
               </button>
-            </form>
+            </div>
           )}
 
           {msg && (
@@ -251,7 +391,7 @@ export function AuthModal({ open, onClose }: Props) {
 }
 
 const inputCls =
-  'w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[var(--color-navy)]';
+  'w-full px-3 py-2.5 border-2 border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[var(--color-navy)] disabled:opacity-50';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
