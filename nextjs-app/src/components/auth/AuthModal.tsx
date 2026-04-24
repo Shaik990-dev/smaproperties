@@ -3,8 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { X } from 'lucide-react';
-import { sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/Button';
 import { registerUser, loginUser } from '@/lib/auth';
 import { notifyOwner } from '@/lib/emailjs';
@@ -170,7 +168,18 @@ export function AuthModal({ open, onClose }: Props) {
 
     setLoading(true); setMsg(null);
     try {
-      await sendPasswordResetEmail(auth, email);
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json() as { ok?: boolean; error?: string };
+
+      if (!res.ok) {
+        setMsg({ kind: 'err', text: data.error ?? 'Failed to send reset email. Please try again.' });
+        toast.error(data.error ?? 'Failed to send reset email.');
+        return;
+      }
 
       // Update rate-limit store
       const rl = loadRL();
@@ -186,19 +195,11 @@ export function AuthModal({ open, onClose }: Props) {
       const note = left > 0 ? ` (${left} attempt${left > 1 ? 's' : ''} left)` : '';
       setMsg({
         kind: 'ok',
-        text: `✅ Reset link sent to ${email}. Check your inbox and spam folder.${note}`,
+        text: `✅ Reset link sent to ${email}. Check your inbox.${note}`,
       });
       toast.success('Password reset email sent!');
-    } catch (err) {
-      const code = (err as { code?: string }).code;
-      let text = 'Failed to send reset email. Please try again.';
-      if (code === 'auth/user-not-found') {
-        text = 'No account found with this email. Please register first.';
-      } else if (code === 'auth/invalid-email') {
-        text = 'Please enter a valid email address.';
-      } else if (code === 'auth/too-many-requests') {
-        text = 'Too many requests from Firebase. Please try again later.';
-      }
+    } catch {
+      const text = 'Something went wrong. Please try again.';
       setMsg({ kind: 'err', text });
       toast.error(text);
     } finally { setLoading(false); }

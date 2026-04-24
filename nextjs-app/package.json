@@ -16,7 +16,8 @@
     "firebase-admin": "^13.4.0",
     "lucide-react": "^0.469.0",
     "sonner": "^1.7.1",
-    "@emailjs/browser": "^4.4.1"
+    "@emailjs/browser": "^4.4.1",
+    "resend": "^4.0.0"
   },
   "devDependencies": {
     "typescript": "^5.7.2",
