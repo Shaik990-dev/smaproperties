@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { X } from 'lucide-react';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/Button';
 import { registerUser, loginUser } from '@/lib/auth';
 import { notifyOwner } from '@/lib/emailjs';
@@ -13,7 +15,7 @@ interface Props {
   onClose: () => void;
 }
 
-type Tab = 'login' | 'register';
+type Tab = 'login' | 'register' | 'forgot';
 
 export function AuthModal({ open, onClose }: Props) {
   const { refresh } = useAuth();
@@ -35,7 +37,9 @@ export function AuthModal({ open, onClose }: Props) {
     setMsg(null);
   };
 
-  const handleClose = () => { reset(); onClose(); };
+  const handleClose = () => { reset(); setTab('login'); onClose(); };
+
+  const switchTab = (t: Tab) => { setMsg(null); setTab(t); };
 
   const submitLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,13 +80,34 @@ export function AuthModal({ open, onClose }: Props) {
     try {
       await registerUser({ name, phone, email, password, interest });
       await refresh();
-      // Notify owner by email (best-effort, non-blocking)
       notifyOwner({ type: 'registration', name, phone, email, interest }).catch(() => {});
       toast.success(`Welcome, ${name}! Your account has been created.`);
       setMsg({ kind: 'ok', text: '✅ Account created! You are now signed in.' });
       setTimeout(handleClose, 900);
     } catch (err) {
       const m = err instanceof Error ? err.message : 'Registration failed';
+      const cleaned = m.replace('Firebase: ', '');
+      setMsg({ kind: 'err', text: cleaned });
+      toast.error(cleaned);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submitForgot = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      setMsg({ kind: 'err', text: 'Please enter your email address' });
+      return;
+    }
+    setLoading(true);
+    setMsg(null);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setMsg({ kind: 'ok', text: '✅ Reset link sent! Check your inbox (and spam folder).' });
+      toast.success('Password reset email sent!');
+    } catch (err) {
+      const m = err instanceof Error ? err.message : 'Failed to send reset email';
       const cleaned = m.replace('Firebase: ', '');
       setMsg({ kind: 'err', text: cleaned });
       toast.error(cleaned);
@@ -100,35 +125,37 @@ export function AuthModal({ open, onClose }: Props) {
         {/* Header */}
         <div className="bg-gradient-to-br from-[var(--color-navy)] to-[var(--color-navy-light)] p-6 flex justify-between items-center">
           <h3 className="font-display text-2xl font-black text-white">
-            Welcome to SMA
+            {tab === 'forgot' ? 'Reset Password' : 'Welcome to SMA'}
           </h3>
           <button onClick={handleClose} className="text-white hover:opacity-70">
             <X size={22} />
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex border-b border-gray-200">
-          <button
-            onClick={() => { setTab('login'); setMsg(null); }}
-            className={`flex-1 py-3 font-bold text-sm border-b-[3px] ${
-              tab === 'login' ? 'border-[var(--color-amber)] text-[var(--color-navy)]' : 'border-transparent text-gray-400'
-            }`}
-          >
-            Sign In
-          </button>
-          <button
-            onClick={() => { setTab('register'); setMsg(null); }}
-            className={`flex-1 py-3 font-bold text-sm border-b-[3px] ${
-              tab === 'register' ? 'border-[var(--color-amber)] text-[var(--color-navy)]' : 'border-transparent text-gray-400'
-            }`}
-          >
-            Register
-          </button>
-        </div>
+        {/* Tabs — hidden on forgot view */}
+        {tab !== 'forgot' && (
+          <div className="flex border-b border-gray-200">
+            <button
+              onClick={() => switchTab('login')}
+              className={`flex-1 py-3 font-bold text-sm border-b-[3px] ${
+                tab === 'login' ? 'border-[var(--color-amber)] text-[var(--color-navy)]' : 'border-transparent text-gray-400'
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              onClick={() => switchTab('register')}
+              className={`flex-1 py-3 font-bold text-sm border-b-[3px] ${
+                tab === 'register' ? 'border-[var(--color-amber)] text-[var(--color-navy)]' : 'border-transparent text-gray-400'
+              }`}
+            >
+              Register
+            </button>
+          </div>
+        )}
 
         <div className="p-6">
-          {tab === 'login' ? (
+          {tab === 'login' && (
             <form onSubmit={submitLogin} className="space-y-3">
               <Field label="Email">
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
@@ -138,6 +165,15 @@ export function AuthModal({ open, onClose }: Props) {
                 <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••" className={inputCls} required />
               </Field>
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={() => switchTab('forgot')}
+                  className="text-xs text-[var(--color-navy)] hover:underline font-medium"
+                >
+                  Forgot password?
+                </button>
+              </div>
               <Button type="submit" disabled={loading} className="w-full">
                 {loading ? 'Signing in…' : '🔐 Sign In'}
               </Button>
@@ -146,7 +182,9 @@ export function AuthModal({ open, onClose }: Props) {
                 Browsing the site does not require an account.
               </p>
             </form>
-          ) : (
+          )}
+
+          {tab === 'register' && (
             <form onSubmit={submitRegister} className="space-y-3">
               <Field label="Full Name *">
                 <input type="text" value={name} onChange={(e) => setName(e.target.value)}
@@ -174,6 +212,28 @@ export function AuthModal({ open, onClose }: Props) {
               <p className="text-xs text-gray-500 text-center leading-relaxed">
                 By registering you allow SMA Builders to contact you about properties.
               </p>
+            </form>
+          )}
+
+          {tab === 'forgot' && (
+            <form onSubmit={submitForgot} className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Enter your registered email address and we&apos;ll send you a link to reset your password.
+              </p>
+              <Field label="Email">
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com" className={inputCls} required autoFocus />
+              </Field>
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? 'Sending…' : '📧 Send Reset Link'}
+              </Button>
+              <button
+                type="button"
+                onClick={() => switchTab('login')}
+                className="w-full text-sm text-[var(--color-navy)] hover:underline font-medium"
+              >
+                ← Back to Sign In
+              </button>
             </form>
           )}
 
