@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
     // Send branded email via Resend
     const { error } = await resend.emails.send({
-      from: 'SMA Builders <noreply@smaproperties.in>',
+      from: process.env.RESEND_FROM_EMAIL ?? 'SMA Builders <onboarding@resend.dev>',
       to: email,
       subject: 'Reset your SMA Properties password',
       html: `
