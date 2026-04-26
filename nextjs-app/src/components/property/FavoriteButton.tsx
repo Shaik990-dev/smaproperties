@@ -8,21 +8,16 @@ import { addFavorite, removeFavorite, subscribeFavorites } from '@/lib/favorites
 
 interface Props {
   propertyId: string;
-  /** Visual size: "sm" for cards, "lg" for detail page */
   size?: 'sm' | 'lg';
 }
 
 export function FavoriteButton({ propertyId, size = 'sm' }: Props) {
-  const { user } = useAuth();
+  const { user, openAuthModal } = useAuth();
   const [favorited, setFavorited] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  // Subscribe to live updates so the heart stays in sync across tabs
   useEffect(() => {
-    if (!user) {
-      setFavorited(false);
-      return;
-    }
+    if (!user) { setFavorited(false); return; }
     const unsub = subscribeFavorites(user.uid, (ids) => {
       setFavorited(ids.includes(propertyId));
     });
@@ -33,34 +28,32 @@ export function FavoriteButton({ propertyId, size = 'sm' }: Props) {
     e.preventDefault();
     e.stopPropagation();
     if (!user) {
-      toast.error('Please sign in to save properties.');
+      openAuthModal();
       return;
     }
     setBusy(true);
     try {
       if (favorited) {
         await removeFavorite(user.uid, propertyId);
-        toast.success('Removed from favorites');
+        toast.success('Removed from saved');
       } else {
         await addFavorite(user.uid, propertyId);
-        toast.success('Added to favorites');
+        toast.success('Property saved!');
       }
     } catch {
-      toast.error('Could not update favorites.');
+      toast.error('Could not update saved properties.');
     } finally {
       setBusy(false);
     }
   };
 
-  const cls = size === 'lg'
-    ? 'w-12 h-12 text-lg'
-    : 'w-9 h-9 text-sm';
+  const cls = size === 'lg' ? 'w-12 h-12 text-lg' : 'w-9 h-9 text-sm';
 
   return (
     <button
       onClick={toggle}
       disabled={busy}
-      aria-label={favorited ? 'Remove from favorites' : 'Add to favorites'}
+      aria-label={favorited ? 'Remove from saved' : 'Save property'}
       className={`${cls} flex items-center justify-center rounded-full bg-white/95 backdrop-blur shadow-md hover:scale-110 transition-transform disabled:opacity-50`}
     >
       <Heart

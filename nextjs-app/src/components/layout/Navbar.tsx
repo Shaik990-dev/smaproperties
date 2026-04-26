@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
-import { AuthModal } from '@/components/auth/AuthModal';
 import { Menu, X, User, Phone, Shield } from 'lucide-react';
 import { AGENTS } from '@/data/agents';
 import { LanguageToggle } from './LanguageToggle';
@@ -16,8 +15,7 @@ const NAV_LINKS = [
 ];
 
 export function Navbar() {
-  const { user, signOut } = useAuth();
-  const [authOpen, setAuthOpen] = useState(false);
+  const { user, signOut, openAuthModal } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -76,7 +74,7 @@ export function Navbar() {
               </div>
             ) : (
               <button
-                onClick={() => setAuthOpen(true)}
+                onClick={openAuthModal}
                 className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white text-sm hover:bg-white/20"
               >
                 <User size={14} /> Sign In
@@ -132,20 +130,14 @@ export function Navbar() {
               <li className="pt-2 border-t border-white/10 mt-2">
                 {user ? (
                   <button
-                    onClick={() => {
-                      signOut();
-                      setMobileOpen(false);
-                    }}
+                    onClick={() => { signOut(); setMobileOpen(false); }}
                     className="w-full text-left px-4 py-3 text-white/90 rounded-lg hover:bg-white/10"
                   >
                     👋 {user.name} (Sign out)
                   </button>
                 ) : (
                   <button
-                    onClick={() => {
-                      setAuthOpen(true);
-                      setMobileOpen(false);
-                    }}
+                    onClick={() => { openAuthModal(); setMobileOpen(false); }}
                     className="w-full text-left px-4 py-3 text-white/90 rounded-lg hover:bg-white/10"
                   >
                     👤 Sign In / Register
@@ -158,8 +150,6 @@ export function Navbar() {
       </nav>
 
       <div className="h-16" />
-
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
     </>
   );
 }

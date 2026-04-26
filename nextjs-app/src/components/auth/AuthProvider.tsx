@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { getUserProfile, signOutUser } from '@/lib/auth';
+import { AuthModal } from './AuthModal';
 import type { AppUser } from '@/lib/types';
 
 interface AuthContextValue {
@@ -11,19 +12,22 @@ interface AuthContextValue {
   loading: boolean;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
+  openAuthModal: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue>({
   user: null,
   loading: true,
   signOut: async () => {},
-  refresh: async () => {}
+  refresh: async () => {},
+  openAuthModal: () => {}
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [fbUser, setFbUser] = useState<FirebaseUser | null>(null);
+  const [authOpen, setAuthOpen] = useState(false);
 
   useEffect(() => {
     if (!auth) return;
@@ -56,10 +60,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await signOutUser();
           setUser(null);
         },
-        refresh
+        refresh,
+        openAuthModal: () => setAuthOpen(true)
       }}
     >
       {children}
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
     </AuthContext.Provider>
   );
 }

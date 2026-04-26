@@ -1,15 +1,17 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { MapPin, ArrowRight, CheckCircle } from 'lucide-react';
+import { MapPin, ArrowRight, CheckCircle, Phone } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { FavoriteButton } from './FavoriteButton';
 import { CompareButton } from './CompareButton';
 import { useLang } from '@/components/layout/LanguageContext';
+import { AGENTS } from '@/data/agents';
 import type { Property } from '@/lib/types';
 
 export function PropertyCard({ property: p, index = 0 }: { property: Property; index?: number }) {
   const { lang } = useLang();
   const displayName = lang === 'te' && p.nameLocal ? p.nameLocal : p.name;
+
   return (
     <Link
       href={`/properties/${p.id}`}
@@ -54,6 +56,22 @@ export function PropertyCard({ property: p, index = 0 }: { property: Property; i
           <MapPin size={14} className="flex-shrink-0 mt-0.5" />
           <span className="line-clamp-2">{p.address}</span>
         </div>
+
+        {/* Price — shown prominently */}
+        {p.price ? (
+          <div className="mt-3 flex items-baseline gap-1.5">
+            <span className="text-xl font-black text-[var(--color-navy)]">{p.price}</span>
+            {p.area && <span className="text-xs text-gray-400 font-medium">· {p.area}</span>}
+          </div>
+        ) : (
+          <a
+            href={`tel:+91${AGENTS[0].phones[0]}`}
+            onClick={(e) => e.stopPropagation()}
+            className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--color-navy)] hover:underline"
+          >
+            <Phone size={13} /> Call for price
+          </a>
+        )}
 
         <div className="flex flex-wrap gap-1.5 mt-3">
           {p.tags.slice(0, 3).map((t) => (
