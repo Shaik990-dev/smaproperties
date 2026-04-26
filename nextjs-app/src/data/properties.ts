@@ -146,6 +146,33 @@ export const DEFAULT_PROPERTIES: Property[] = [
     pics: ['https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80']
   },
   {
+    id: 'p8',
+    name: 'Flat No. 404 – North Facing, 867 sq.ft',
+    nameLocal: 'ఫ్లాట్ నెం. 404 – ఉత్తర ముఖంగా, 867 చ.అ.',
+    type: 'flat',
+    typeLabel: 'Flat / ఫ్లాట్',
+    badge: 'Hot Deal',
+    badgeColor: 'hot',
+    bgColor: '#ede9fe',
+    emoji: '🏙️',
+    address: 'Nellore City – Exact location shared on enquiry',
+    availability: 'Ready to Move',
+    tags: ['North Facing', '867 sq.ft', 'Negotiable', 'Clear Documents'],
+    facing: 'North',
+    area: '867 sq.ft',
+    price: '₹25 Lakhs',
+    priceNumber: 2500000,
+    details: [
+      { icon: '🏙️', label: 'Flat No.', value: 'Flat No. 404' },
+      { icon: '📐', label: 'Area', value: '867 sq.ft (Built-up)' },
+      { icon: '🧭', label: 'Facing', value: 'North Facing' },
+      { icon: '📜', label: 'Documents', value: 'Registered – Clear Title' },
+      { icon: '📍', label: 'Location', value: 'Nellore City (shared after enquiry)' },
+      { icon: '💰', label: 'Price', value: '₹25 Lakhs (Negotiable)' }
+    ],
+    pics: ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&q=80']
+  },
+  {
     id: 'p6',
     name: 'Agricultural Land – Nellore District',
     nameLocal: 'వ్యవసాయ భూమి / పాలముల అమ్మకానికి',
