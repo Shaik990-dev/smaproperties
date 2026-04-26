@@ -13,7 +13,7 @@ export default function TermsPage() {
       <header className="mb-10 border-b border-gray-200 pb-8">
         <h1 className="font-display text-4xl sm:text-5xl font-black text-gray-900">Terms & Conditions</h1>
         <p className="text-sm text-gray-500 mt-2">
-          Last updated: {new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}
+          Last updated: 26 April 2026
         </p>
       </header>
 

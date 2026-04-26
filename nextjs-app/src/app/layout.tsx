@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter, Playfair_Display } from 'next/font/google';
 import './globals.css';
+import { AGENTS } from '@/data/agents';
 import { Toaster } from 'sonner';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
     template: '%s | SMA Builders Nellore'
   },
   description:
-    'SMA Builders & Real Estates Nellore – Buy DTCP approved plots, open layouts, 2BHK & 3BHK flats, individual houses, villas & agricultural land in Nellore, Andhra Pradesh. Best prices in Nellore district. Contact Sk. Ahamad: 7396979572 | Sk. Umar: 8886021688. Trusted since 2014.',
+    `SMA Builders & Real Estates Nellore – Buy DTCP approved plots, open layouts, 2BHK & 3BHK flats, individual houses, villas & agricultural land in Nellore, Andhra Pradesh. Best prices in Nellore district. Contact ${AGENTS[0].name}: ${AGENTS[0].phones[0]} | ${AGENTS[1].name}: ${AGENTS[1].phones[0]}. Trusted since 2014.`,
   keywords: [
     // Brand
     'SMA Builders', 'SMA Builders Nellore', 'SMA Real Estates', 'smaproperties', 'sma properties nellore',
@@ -64,7 +65,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://smaproperties.in'),
   openGraph: {
     title: 'SMA Builders & Real Estates – Plots, Houses, Flats in Nellore',
-    description: 'Buy DTCP approved plots, flats, houses, villas & agricultural land in Nellore, Andhra Pradesh. Best prices. Trusted since 2014. Call: 7396979572',
+    description: `Buy DTCP approved plots, flats, houses, villas & agricultural land in Nellore, Andhra Pradesh. Best prices. Trusted since 2014. Call: ${AGENTS[0].phones[0]}`,
     url: 'https://smaproperties.in',
     siteName: 'SMA Builders & Real Estates Nellore',
     locale: 'en_IN',
@@ -74,7 +75,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'SMA Builders & Real Estates – Nellore',
-    description: 'Buy plots, flats, houses & land in Nellore. DTCP approved. Best prices. Call: 7396979572'
+    description: `Buy plots, flats, houses & land in Nellore. DTCP approved. Best prices. Call: ${AGENTS[0].phones[0]}`
   },
   alternates: { canonical: 'https://smaproperties.in' },
   category: 'Real Estate',

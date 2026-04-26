@@ -12,7 +12,7 @@ export default function PrivacyPolicyPage() {
     <article className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-16 prose-content">
       <header className="mb-10 border-b border-gray-200 pb-8">
         <h1 className="font-display text-4xl sm:text-5xl font-black text-gray-900">Privacy Policy</h1>
-        <p className="text-sm text-gray-500 mt-2">Last updated: {new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        <p className="text-sm text-gray-500 mt-2">Last updated: 26 April 2026</p>
       </header>
 
       <LegalSection title="1. Who we are">
@@ -61,7 +61,7 @@ export default function PrivacyPolicyPage() {
           We keep your inquiry and account data for as long as you continue to interact with us, or for up to 3 years from your last activity, whichever is later. After that we delete or anonymize the data.
         </p>
         <p>
-          You can request immediate deletion of your account and all associated data at any time — see LegalSection 7 below.
+          You can request immediate deletion of your account and all associated data at any time — see section 7 below.
         </p>
       </LegalSection>
 

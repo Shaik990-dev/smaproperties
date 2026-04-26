@@ -30,7 +30,7 @@ export async function generateMetadata({
   if (!p) return { title: 'Property not found' };
 
   const title = `${p.name} — ${p.typeLabel} for Sale in Nellore | SMA Builders`;
-  const description = `${p.name} — ${p.typeLabel} located at ${p.address}. ${p.availability}. ${p.tags.slice(0, 4).join(', ')}. Buy from SMA Builders Nellore. Contact: 7396979572.`;
+  const description = `${p.name} — ${p.typeLabel} located at ${p.address}. ${p.availability}. ${p.tags.slice(0, 4).join(', ')}. Buy from SMA Builders Nellore. Contact: ${AGENTS[0].phones[0]}.`;
   const url = `https://smaproperties.in/properties/${p.id}`;
 
   return {
