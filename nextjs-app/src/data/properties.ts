@@ -65,14 +65,41 @@ export const DEFAULT_PROPERTIES: Property[] = [
     tags: ['25 Ankanams', 'East Facing', 'Penballi Gramam'],
     facing: 'East',
     area: '25 Ankanams',
+    price: 'From ₹10 Lakhs',
+    priceNumber: 1000000,
     details: [
       { icon: '🌿', label: 'Layout', value: 'Saravana Kamakshi Gardens' },
       { icon: '📐', label: 'Plot Size', value: '25 Ankanams' },
       { icon: '🧭', label: 'Facing', value: 'East Facing' },
       { icon: '💧', label: 'Water', value: 'Borewell nearby' },
-      { icon: '💰', label: 'Price', value: 'Contact us' }
+      { icon: '💰', label: 'Price', value: 'From ₹10 Lakhs onwards' }
     ],
     pics: ['https://images.unsplash.com/photo-1625602812206-5ec545ca1231?w=1200&q=80']
+  },
+  {
+    id: 'p7',
+    name: 'Krishnapatnam Port Area Plots',
+    nameLocal: 'కృష్ణపట్నం పోర్ట్ సమీప స్థలాలు',
+    type: 'plot',
+    typeLabel: 'Layout / లేఅవుట్',
+    badge: 'Hot Deal',
+    badgeColor: 'hot',
+    bgColor: '#d1fae5',
+    emoji: '⚓',
+    address: 'Near Krishnapatnam Port, Nellore District, Andhra Pradesh',
+    availability: 'Plots Available',
+    tags: ['Near Port', 'High Growth Area', 'Investment'],
+    area: 'Multiple sizes',
+    price: 'From ₹10 Lakhs',
+    priceNumber: 1000000,
+    details: [
+      { icon: '⚓', label: 'Location', value: 'Near Krishnapatnam Port, Nellore' },
+      { icon: '📈', label: 'Investment', value: 'High growth — Industrial corridor' },
+      { icon: '🛣️', label: 'Access', value: 'NH-16 & Port Road connectivity' },
+      { icon: '📜', label: 'Documents', value: 'Clear Title Documents' },
+      { icon: '💰', label: 'Price', value: 'From ₹10 Lakhs onwards' }
+    ],
+    pics: ['https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80']
   },
   {
     id: 'p4',
