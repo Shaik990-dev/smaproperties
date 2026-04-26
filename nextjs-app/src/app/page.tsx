@@ -3,7 +3,7 @@ import { FeaturedProperties } from '@/components/sections/FeaturedProperties';
 import { About } from '@/components/sections/About';
 import { Testimonials } from '@/components/sections/Testimonials';
 import { Contact } from '@/components/sections/Contact';
-import { faqJsonLd, HOME_FAQS } from '@/lib/seo';
+import { faqJsonLd, howToBuyPropertyJsonLd, HOME_FAQS } from '@/lib/seo';
 
 // Local Business + RealEstateAgent + Organization JSON-LD
 const localBusinessJsonLd = {
@@ -107,6 +107,10 @@ export default function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd(HOME_FAQS)) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(howToBuyPropertyJsonLd()) }}
+      />
       <Hero />
       <FeaturedProperties />
       <About />
@@ -149,7 +153,7 @@ export default function HomePage() {
               <p>
                 Buy <strong>agricultural land in Nellore district</strong> and <strong>farm land near Nellore</strong>.
                 Ideal for farming, investment, or future development. Land available in Kavali, Gudur, Sullurpeta,
-                Atmakur, Buchireddypalem, and surrounding mandals.
+                Atmakur, Buchireddypalem, and surrounding mandals. All land verified with Pattadar Passbook and EC.
               </p>
             </div>
             <div>
@@ -164,8 +168,36 @@ export default function HomePage() {
               <h3 className="font-bold text-gray-900 text-base mb-2">Why Choose SMA Builders?</h3>
               <p>
                 <strong>10+ years of experience</strong> in Nellore real estate. <strong>500+ happy clients</strong>.
-                All properties are verified with <strong>clear titles</strong> and <strong>DTCP approval</strong>.
-                We offer the <strong>best prices in Nellore</strong> with transparent dealings and no hidden charges.
+                All properties verified with <strong>clear titles</strong> and <strong>DTCP approval</strong>.
+                <strong> Best prices in Nellore</strong> with transparent dealings, no hidden charges, and complete
+                registration assistance.
+              </p>
+            </div>
+          </div>
+
+          {/* How to buy + investment guide */}
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8 text-sm text-gray-600 leading-relaxed border-t border-gray-100 pt-10">
+            <div>
+              <h3 className="font-bold text-gray-900 text-base mb-3">How to Buy Property in Nellore</h3>
+              <ol className="list-decimal list-inside space-y-1.5">
+                <li><strong>Browse listings</strong> at smaproperties.in/properties</li>
+                <li><strong>Contact us</strong> by phone or WhatsApp for enquiries</li>
+                <li><strong>Free site visit</strong> — we personally show the property</li>
+                <li><strong>Document verification</strong> — title deed, DTCP, EC, Pattadar</li>
+                <li><strong>Registration assistance</strong> at Sub-Registrar office, Nellore</li>
+              </ol>
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 text-base mb-3">Nellore Real Estate Investment Guide</h3>
+              <p className="mb-2">
+                <strong>Why invest in Nellore?</strong> Nellore is one of Andhra Pradesh&apos;s fastest-growing cities
+                with rapid infrastructure development — Krishnapatnam Port, APCRDA projects, NH-16 expansion, and
+                the Nellore–Chennai industrial corridor are driving strong land appreciation.
+              </p>
+              <p>
+                <strong>Best investment zones:</strong> Padugupadu, Muthukur, Vedayapalem (near Nellore city),
+                Kavali (south corridor), and Gudur (north NH-16). DTCP-approved plots in these zones have shown
+                20–35% appreciation in 3 years.
               </p>
             </div>
           </div>

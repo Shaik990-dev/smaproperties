@@ -7,13 +7,13 @@ const BASE = 'https://smaproperties.in';
 // Using new Date() here causes Google to re-crawl everything on every deploy,
 // wasting crawl budget since most pages haven't changed.
 const DATES = {
-  home:          new Date('2025-04-01'),
-  properties:    new Date('2025-04-01'),
+  home:          new Date('2026-04-26'),
+  properties:    new Date('2026-04-26'),
   about:         new Date('2025-02-01'),
   contact:       new Date('2025-02-01'),
   emiCalculator: new Date('2025-02-01'),
-  legal:         new Date('2025-02-01'),
-  propertyPages: new Date('2025-04-01'),
+  legal:         new Date('2026-04-26'),
+  propertyPages: new Date('2026-04-26'),
 };
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

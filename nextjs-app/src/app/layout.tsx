@@ -35,29 +35,37 @@ export const metadata: Metadata = {
   keywords: [
     // Brand
     'SMA Builders', 'SMA Builders Nellore', 'SMA Real Estates', 'smaproperties', 'sma properties nellore',
-    // Property types
+    // Property types — buyer intent
     'plots in nellore', 'plots for sale in nellore', 'DTCP approved plots nellore',
     'open plots nellore', 'residential plots nellore', 'house plots nellore',
+    'buy plots in nellore', 'cheap plots nellore', 'low cost plots nellore',
+    'affordable plots nellore', 'plots near nellore city', 'plots near nellore bypass',
     'layouts in nellore', 'DTCP layouts nellore', 'approved layouts nellore',
+    'open plots near highway nellore', 'plots near krishnapatnam port',
     'flats in nellore', 'flats for sale nellore', '2BHK flats nellore', '3BHK flats nellore',
-    'apartments in nellore', 'apartments for sale nellore',
+    'apartments in nellore', 'apartments for sale nellore', 'ready to move flats nellore',
     'houses in nellore', 'houses for sale nellore', 'individual houses nellore',
-    'villas in nellore', 'independent houses nellore',
+    'villas in nellore', 'independent houses nellore', 'duplex houses nellore',
     'land in nellore', 'land for sale nellore', 'agricultural land nellore',
-    'farm land nellore', 'commercial land nellore',
+    'farm land nellore', 'commercial land nellore', 'nellore land price per square yard',
+    'plot price nellore', 'property rate nellore', 'plot rate nellore per gunta',
     // General
     'real estate nellore', 'property in nellore', 'property for sale nellore',
     'nellore real estate', 'nellore properties', 'buy property nellore',
     'best real estate nellore', 'top builders nellore', 'trusted builders nellore',
     'real estate agents nellore', 'property dealers nellore',
+    'nellore real estate 2025', 'property investment nellore',
     // Locations
     'plots padugupadu', 'properties kavali', 'plots gudur', 'land sullurpeta',
     'real estate vedayapalem', 'plots muthukur', 'land atmakur nellore',
     'properties buchireddypalem', 'plots venkatagiri', 'land rapur',
-    'nellore district properties', 'andhra pradesh real estate',
+    'plots near nts gate nellore', 'properties grand trunk road nellore',
+    'nellore district properties', 'andhra pradesh real estate', 'spsr nellore',
+    // Document-related searches
+    'DTCP approved plots andhra pradesh', 'pattadar plots nellore', 'clear title plots nellore',
     // Telugu keywords
     'నెల్లూరు ప్లాట్లు', 'నెల్లూరు ఫ్లాట్లు', 'నెల్లూరు ఇళ్ళు', 'నెల్లూరు భూములు',
-    'నెల్లూరు రియల్ ఎస్టేట్', 'SMA బిల్డర్స్ నెల్లూరు'
+    'నెల్లూరు రియల్ ఎస్టేట్', 'SMA బిల్డర్స్ నెల్లూరు', 'నెల్లూరు ఆస్తులు'
   ],
   authors: [{ name: 'SMA Builders & Real Estates' }],
   creator: 'SMA Builders & Real Estates Nellore',
