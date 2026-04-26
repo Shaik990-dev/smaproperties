@@ -3,8 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { X } from 'lucide-react';
-import { sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/Button';
 import { registerUser, loginUser } from '@/lib/auth';
 import { notifyOwner } from '@/lib/emailjs';
@@ -165,14 +163,10 @@ export function AuthModal({ open, onClose }: Props) {
       const data = await res.json() as { ok?: boolean; error?: string };
 
       if (!res.ok) {
-        if (res.status === 404 || res.status === 400) {
-          // User error — unregistered email or invalid format
-          setMsg({ kind: 'err', text: data.error ?? 'Something went wrong.' });
-          toast.error(data.error ?? 'Something went wrong.');
-          return;
-        }
-        // Resend service error — fall back to Firebase email
-        await sendPasswordResetEmail(auth, email);
+        const errText = data.error ?? 'Something went wrong. Please try again.';
+        setMsg({ kind: 'err', text: errText });
+        toast.error(errText);
+        return;
       }
 
       // Success — update rate limit
@@ -181,13 +175,10 @@ export function AuthModal({ open, onClose }: Props) {
       saveRL({ attempts: newAttempts, lastSentAt: Date.now(), lockedUntil: newAttempts >= MAX_ATTEMPTS ? Date.now() + LOCKOUT_MS : 0 });
       syncRL();
 
-      setMsg({ kind: 'ok', text: `✅ Reset link sent to ${email}. Check your inbox.` });
+      setMsg({ kind: 'ok', text: `✅ Reset link sent to ${email}. Check your inbox (and spam folder).` });
       toast.success('Password reset email sent!');
-    } catch (err) {
-      const code = (err as { code?: string }).code;
-      const text = code === 'auth/user-not-found'
-        ? 'No account found with this email. Please register first.'
-        : 'Failed to send reset email. Please try again.';
+    } catch {
+      const text = 'Failed to send reset email. Please try again or contact us at +91 73969 79572.';
       setMsg({ kind: 'err', text });
       toast.error(text);
     } finally { setLoading(false); }
