@@ -12,6 +12,8 @@ import { breadcrumbJsonLd } from '@/lib/seo';
 import type { Property } from '@/lib/types';
 
 export const revalidate = 60;
+// Only paths from generateStaticParams are valid — everything else is a hard 404
+export const dynamicParams = false;
 
 // Pre-render all properties at build time
 export async function generateStaticParams() {
