@@ -29,7 +29,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const p = await getPropertyServer(id);
-  if (!p) return notFound();
+  if (!p) return { title: 'Property Not Found', robots: { index: false } };
 
   // No trailing "| SMA Builders" — layout template appends "| SMA Builders Nellore"
   const title = `${p.name} — ${p.typeLabel} for Sale in Nellore`;

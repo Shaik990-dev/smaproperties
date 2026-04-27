@@ -38,7 +38,7 @@ const aboutJsonLd = {
 };
 
 export const metadata: Metadata = {
-  title: 'About SMA Builders Nellore – Trusted Real Estate Since 2014',
+  title: 'About SMA Builders – Trusted Real Estate Since 2014',
   description:
     'SMA Builders & Real Estates – Nellore\'s trusted property dealer since 2014. 500+ happy clients, 50+ projects. DTCP-approved plots, flats & land.',
   keywords: [

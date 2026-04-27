@@ -34,7 +34,7 @@ const localBusinessJsonLd = {
 };
 
 export const metadata: Metadata = {
-  title: 'Contact SMA Builders Nellore – Call or WhatsApp',
+  title: 'Contact SMA Builders – Call or WhatsApp',
   description:
     `Contact SMA Builders Nellore. Call ${AGENTS[0].name}: ${AGENTS[0].phones[0]} or ${AGENTS[1].name}: ${AGENTS[1].phones[0]}. Near NTS Gate, Padugupadu, Nellore – 524137.`,
   keywords: [
