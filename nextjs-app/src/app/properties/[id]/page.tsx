@@ -19,6 +19,8 @@ export async function generateStaticParams() {
   return properties.map((p) => ({ id: p.id }));
 }
 
+const OG_FALLBACK = 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1200&q=80';
+
 // Per-property SEO metadata (title, description, OG)
 export async function generateMetadata({
   params
@@ -27,11 +29,21 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const p = await getPropertyServer(id);
-  if (!p) return { title: 'Property not found' };
+  if (!p) return notFound();
 
-  const title = `${p.name} — ${p.typeLabel} for Sale in Nellore | SMA Builders`;
-  const description = `${p.name} — ${p.typeLabel} located at ${p.address}. ${p.availability}. ${p.tags.slice(0, 4).join(', ')}. Buy from SMA Builders Nellore. Contact: ${AGENTS[0].phones[0]}.`;
+  // No trailing "| SMA Builders" — layout template appends "| SMA Builders Nellore"
+  const title = `${p.name} — ${p.typeLabel} for Sale in Nellore`;
+  const desc = [
+    p.name,
+    p.typeLabel,
+    p.availability,
+    p.price,
+    p.area,
+    'Clear title. SMA Builders Nellore.'
+  ].filter(Boolean).join(' · ');
+  const description = desc.length > 155 ? desc.slice(0, 152) + '…' : desc;
   const url = `https://smaproperties.in/properties/${p.id}`;
+  const ogImage = p.pics?.[0] ?? OG_FALLBACK;
 
   return {
     title,
@@ -46,53 +58,53 @@ export async function generateMetadata({
       description,
       url,
       type: 'website',
-      images: p.pics?.length ? [{ url: p.pics[0], alt: p.name, width: 1200, height: 630 }] : []
+      images: [{ url: ogImage, alt: p.name, width: 1200, height: 630 }]
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${p.name} — ${p.typeLabel} Nellore`,
+      title,
       description,
-      images: p.pics?.length ? [p.pics[0]] : []
+      images: [ogImage]
     },
     alternates: { canonical: url }
   };
 }
 
 function buildJsonLd(p: Property) {
-  // Schema.org Product (real-estate-friendly variant) — gives Google rich results
+  const offerBase = {
+    '@type': 'Offer',
+    url: `https://smaproperties.in/properties/${p.id}`,
+    availability:
+      p.availability.toLowerCase().includes('sold') || p.availability.toLowerCase().includes('not')
+        ? 'https://schema.org/OutOfStock'
+        : 'https://schema.org/InStock',
+    priceCurrency: 'INR',
+    ...(p.priceNumber
+      ? { price: p.priceNumber }
+      : { priceSpecification: { '@type': 'PriceSpecification', priceCurrency: 'INR', description: 'Contact for price' } }),
+    seller: {
+      '@type': 'RealEstateAgent',
+      name: 'SMA Builders & Real Estates',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: 'NTS Gate, Padugupadu',
+        addressLocality: 'Nellore',
+        addressRegion: 'Andhra Pradesh',
+        postalCode: '524137',
+        addressCountry: 'IN'
+      }
+    }
+  };
+
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: p.name,
     description: `${p.typeLabel} located at ${p.address}. ${p.availability}.`,
     image: p.pics,
-    brand: {
-      '@type': 'Organization',
-      name: 'SMA Builders & Real Estates',
-      url: 'https://smaproperties.in'
-    },
+    brand: { '@type': 'Organization', name: 'SMA Builders & Real Estates', url: 'https://smaproperties.in' },
     category: p.typeLabel,
-    offers: {
-      '@type': 'Offer',
-      url: `https://smaproperties.in/properties/${p.id}`,
-      availability:
-        p.availability.toLowerCase().includes('sold') || p.availability.toLowerCase().includes('not')
-          ? 'https://schema.org/OutOfStock'
-          : 'https://schema.org/InStock',
-      priceCurrency: 'INR',
-      seller: {
-        '@type': 'RealEstateAgent',
-        name: 'SMA Builders & Real Estates',
-        address: {
-          '@type': 'PostalAddress',
-          streetAddress: 'NTS Gate, Padugupadu',
-          addressLocality: 'Nellore',
-          addressRegion: 'Andhra Pradesh',
-          postalCode: '524137',
-          addressCountry: 'IN'
-        }
-      }
-    }
+    offers: offerBase
   };
 }
 
@@ -100,7 +112,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
   const { id } = await params;
   const p = await getPropertyServer(id);
 
-  if (!p) notFound();
+  if (!p) return notFound();
 
   const enquiryMsg = `Hi SMA Builders! 🏠\nInterested in: *${p.name}*\nAddress: ${p.address}\nPlease share details.`;
   const jsonLd = buildJsonLd(p);

@@ -80,6 +80,14 @@ export function Contact() {
                 <div>
                   <strong className="block text-gray-900">Office Address</strong>
                   <span className="text-gray-600 text-sm">{OFFICE.addressEn}</span>
+                  <a
+                    href="https://www.google.com/maps/search/?api=1&query=NTS+Gate+Padugupadu+Nellore+Andhra+Pradesh"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block mt-1 text-xs font-semibold text-[var(--color-navy)] hover:underline"
+                  >
+                    📍 Get Directions →
+                  </a>
                 </div>
               </div>
               <div className="flex gap-3">
@@ -132,7 +140,7 @@ export function Contact() {
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Phone *</label>
                 <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
-                  className={inputCls} placeholder="9876543210" required />
+                  className={inputCls} placeholder="Enter your 10-digit mobile number" required />
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Property Interest</label>

@@ -7,9 +7,9 @@ import { faqJsonLd, breadcrumbJsonLd, PROPERTIES_FAQS } from '@/lib/seo';
 export const revalidate = 60;
 
 export const metadata: Metadata = {
-  title: 'Properties for Sale in Nellore – Plots, Flats, Houses, Land | SMA Builders',
+  title: 'Properties for Sale in Nellore – Plots, Flats, Houses & Land',
   description:
-    'Browse all available real estate properties in Nellore district: DTCP-approved plots & layouts, 2BHK & 3BHK flats, individual houses, villas, agricultural land & farm land. Verified listings from SMA Builders. Best prices in Nellore, Kavali, Gudur, Sullurpeta, Atmakur.',
+    'Browse verified properties in Nellore: DTCP-approved plots, 2BHK & 3BHK flats, houses, villas & farm land. Best prices. SMA Builders.',
   keywords: [
     'properties for sale nellore', 'plots for sale nellore', 'DTCP approved plots nellore',
     'flats for sale nellore', '2BHK flats nellore', '3BHK flats nellore',
@@ -20,11 +20,17 @@ export const metadata: Metadata = {
     'nellore real estate listings', 'property listings nellore'
   ],
   openGraph: {
-    title: 'All Properties for Sale in Nellore | SMA Builders',
-    description:
-      'Browse DTCP-approved plots, flats, houses & land in Nellore. Verified listings. Best prices.',
+    title: 'Properties for Sale in Nellore – Plots, Flats, Houses & Land',
+    description: 'Browse DTCP-approved plots, flats, houses & land in Nellore. Verified listings. Best prices.',
     url: 'https://smaproperties.in/properties',
-    type: 'website'
+    type: 'website',
+    images: [{ url: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1200&q=80', width: 1200, height: 630, alt: 'Properties for Sale in Nellore' }]
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Properties for Sale in Nellore – SMA Builders',
+    description: 'Browse DTCP-approved plots, flats, houses & land in Nellore. Best prices.',
+    images: ['https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1200&q=80']
   },
   alternates: { canonical: 'https://smaproperties.in/properties' }
 };

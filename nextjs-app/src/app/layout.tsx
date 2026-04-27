@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter, Playfair_Display } from 'next/font/google';
 import './globals.css';
-import { AGENTS } from '@/data/agents';
 import { Toaster } from 'sonner';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
@@ -25,13 +24,20 @@ const playfair = Playfair_Display({
   display: 'swap'
 });
 
+const OG_IMAGE = {
+  url: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=1200&q=80',
+  width: 1200,
+  height: 630,
+  alt: 'SMA Builders & Real Estates – Properties for Sale in Nellore'
+};
+
 export const metadata: Metadata = {
   title: {
-    default: 'SMA Builders & Real Estates Nellore – Plots, Houses, Flats, Land for Sale',
+    default: 'SMA Builders Nellore – Plots, Flats, Houses & Land for Sale',
     template: '%s | SMA Builders Nellore'
   },
   description:
-    `SMA Builders & Real Estates Nellore – Buy DTCP approved plots, open layouts, 2BHK & 3BHK flats, individual houses, villas & agricultural land in Nellore, Andhra Pradesh. Best prices in Nellore district. Contact ${AGENTS[0].name}: ${AGENTS[0].phones[0]} | ${AGENTS[1].name}: ${AGENTS[1].phones[0]}. Trusted since 2014.`,
+    'Buy DTCP-approved plots, flats, houses & agricultural land in Nellore, AP. Trusted since 2014. 500+ happy clients. Best prices. Call SMA Builders.',
   keywords: [
     // Brand
     'SMA Builders', 'SMA Builders Nellore', 'SMA Real Estates', 'smaproperties', 'sma properties nellore',
@@ -72,18 +78,20 @@ export const metadata: Metadata = {
   publisher: 'SMA Builders & Real Estates',
   metadataBase: new URL('https://smaproperties.in'),
   openGraph: {
-    title: 'SMA Builders & Real Estates – Plots, Houses, Flats in Nellore',
-    description: `Buy DTCP approved plots, flats, houses, villas & agricultural land in Nellore, Andhra Pradesh. Best prices. Trusted since 2014. Call: ${AGENTS[0].phones[0]}`,
+    title: 'SMA Builders Nellore – Plots, Flats, Houses & Land for Sale',
+    description: 'Buy DTCP-approved plots, flats, houses & land in Nellore, AP. Best prices. Trusted since 2014.',
     url: 'https://smaproperties.in',
     siteName: 'SMA Builders & Real Estates Nellore',
     locale: 'en_IN',
     type: 'website',
-    countryName: 'India'
+    countryName: 'India',
+    images: [OG_IMAGE]
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SMA Builders & Real Estates – Nellore',
-    description: `Buy plots, flats, houses & land in Nellore. DTCP approved. Best prices. Call: ${AGENTS[0].phones[0]}`
+    title: 'SMA Builders Nellore – Plots, Flats, Houses & Land',
+    description: 'Buy DTCP-approved plots, flats, houses & land in Nellore. Best prices. Trusted since 2014.',
+    images: [OG_IMAGE.url]
   },
   alternates: { canonical: 'https://smaproperties.in' },
   category: 'Real Estate',

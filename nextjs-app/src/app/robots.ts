@@ -10,6 +10,6 @@ export default function robots(): MetadataRoute.Robots {
       }
     ],
     sitemap: 'https://smaproperties.in/sitemap.xml',
-    host: 'https://smaproperties.in'
+    host: 'smaproperties.in'
   };
 }

@@ -79,17 +79,11 @@ const localBusinessJsonLd = {
   ]
 };
 
-// Website SearchAction schema (enables Google sitelinks search box)
 const websiteJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   name: 'SMA Builders & Real Estates',
-  url: 'https://smaproperties.in',
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: 'https://smaproperties.in/properties?q={search_term_string}',
-    'query-input': 'required name=search_term_string'
-  }
+  url: 'https://smaproperties.in'
 };
 
 export default function HomePage() {
