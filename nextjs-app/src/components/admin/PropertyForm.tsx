@@ -256,14 +256,9 @@ export function PropertyForm({ property, onSaved, onCancel }: Props) {
           <input value={p.address} onChange={(e) => update('address', e.target.value)} className={inputCls} />
         </Field>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Availability Text">
-            <input value={p.availability} onChange={(e) => update('availability', e.target.value)} className={inputCls} />
-          </Field>
-          <Field label="Area">
-            <input value={p.area || ''} onChange={(e) => update('area', e.target.value)} className={inputCls} placeholder="33½ Ankanams / 1200 sq.ft" />
-          </Field>
-        </div>
+        <Field label="Availability Text">
+          <input value={p.availability} onChange={(e) => update('availability', e.target.value)} className={inputCls} />
+        </Field>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Price Display Text *">
