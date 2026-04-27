@@ -17,17 +17,19 @@ const DB_URL = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL;
 export async function getPropertiesServer(): Promise<Property[]> {
   if (!DB_URL) return DEFAULT_PROPERTIES;
   try {
-    const res = await fetch(`${DB_URL}/properties.json`, {
-      next: { revalidate: 60, tags: ['properties'] }
-    });
+    const [res, deletedRes] = await Promise.all([
+      fetch(`${DB_URL}/properties.json`, { next: { revalidate: 60, tags: ['properties'] } }),
+      fetch(`${DB_URL}/deletedProperties.json`, { next: { revalidate: 60, tags: ['properties'] } })
+    ]);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = (await res.json()) as Record<string, Property> | null;
-    if (!data) return DEFAULT_PROPERTIES;
+    const deletedData = deletedRes.ok ? (await deletedRes.json()) as Record<string, boolean> | null : null;
+    const deletedSet = new Set<string>(deletedData ? Object.keys(deletedData) : []);
+    if (!data) return DEFAULT_PROPERTIES.filter((p) => !deletedSet.has(p.id));
     const fromDb = Object.values(data);
-    if (!fromDb.length) return DEFAULT_PROPERTIES;
-    // Fill in any DEFAULT_PROPERTIES missing from Firebase (deleted or not yet pushed)
+    if (!fromDb.length) return DEFAULT_PROPERTIES.filter((p) => !deletedSet.has(p.id));
     const dbIds = new Set(fromDb.map((p) => p.id));
-    const missing = DEFAULT_PROPERTIES.filter((p) => !dbIds.has(p.id));
+    const missing = DEFAULT_PROPERTIES.filter((p) => !dbIds.has(p.id) && !deletedSet.has(p.id));
     return [...fromDb, ...missing];
   } catch (e) {
     console.warn('getPropertiesServer fallback to seed data:', e);

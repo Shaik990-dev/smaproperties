@@ -6,9 +6,10 @@ import { toast } from 'sonner';
 import { ref, get, set } from 'firebase/database';
 import { db, auth } from '@/lib/firebase';
 import { fetchProperties } from '@/lib/properties';
-import { getInquiries, deleteInquiry, type Inquiry } from '@/lib/inquiries';
+import { getInquiries, deleteInquiry, updateInquiryStatus, type Inquiry } from '@/lib/inquiries';
 import {
-  Users, Eye, Home, MessageCircle, Phone, Trash2, Star, Inbox, Mail, BarChart3
+  Users, Eye, Home, MessageCircle, Phone, Trash2, Star, Inbox, Mail, BarChart3,
+  CheckCircle, Clock, RefreshCw
 } from 'lucide-react';
 import { waLink, telLink } from '@/lib/utils';
 import { AnalyticsTab } from '@/components/admin/AnalyticsTab';
@@ -43,7 +44,19 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     loadAll();
+    const interval = setInterval(loadAll, 30_000);
+    return () => clearInterval(interval);
   }, []);
+
+  const markStatus = async (id: string, status: 'new' | 'contacted' | 'closed') => {
+    try {
+      await updateInquiryStatus(id, status);
+      toast.success(status === 'contacted' ? 'Marked as contacted' : status === 'closed' ? 'Lead closed' : 'Marked as new');
+      await loadAll();
+    } catch {
+      toast.error('Could not update status.');
+    }
+  };
 
   const toggleAdmin = async (uid: string, makeAdmin: boolean) => {
     if (!confirm(makeAdmin ? 'Promote this user to ADMIN?' : 'Remove admin rights?')) return;
@@ -126,6 +139,12 @@ export default function AdminDashboard() {
         >
           🏠 View Live Site
         </Link>
+        <button
+          onClick={loadAll}
+          className="px-5 py-2.5 rounded-lg bg-gray-100 text-gray-700 text-sm font-bold hover:bg-gray-200 inline-flex items-center gap-2"
+        >
+          <RefreshCw size={14} /> Refresh
+        </button>
       </div>
 
       {/* Tabs */}
@@ -146,7 +165,7 @@ export default function AdminDashboard() {
         ) : tab === 'overview' ? (
           <OverviewTab inquiries={inquiryEntries.slice(0, 5)} users={userEntries.slice(0, 5)} />
         ) : tab === 'leads' ? (
-          <LeadsTab inquiries={inquiryEntries} onDelete={removeInquiry} />
+          <LeadsTab inquiries={inquiryEntries} onDelete={removeInquiry} onStatusChange={markStatus} />
         ) : tab === 'analytics' ? (
           <AnalyticsTab visitors={visitorsRaw} inquiries={inquiryEntries} users={userEntries} />
         ) : (
@@ -228,7 +247,15 @@ function OverviewTab({ inquiries, users }: { inquiries: [string, Inquiry][]; use
 }
 
 /* ─── Leads tab ─────────────────────────── */
-function LeadsTab({ inquiries, onDelete }: { inquiries: [string, Inquiry][]; onDelete: (id: string) => void }) {
+function LeadsTab({
+  inquiries,
+  onDelete,
+  onStatusChange
+}: {
+  inquiries: [string, Inquiry][];
+  onDelete: (id: string) => void;
+  onStatusChange: (id: string, status: 'new' | 'contacted' | 'closed') => void;
+}) {
   if (inquiries.length === 0) {
     return (
       <div className="bg-white rounded-2xl p-12 text-center border border-gray-100">
@@ -242,19 +269,33 @@ function LeadsTab({ inquiries, onDelete }: { inquiries: [string, Inquiry][]; onD
     <div className="bg-white rounded-2xl border border-gray-100 divide-y divide-gray-100 overflow-hidden">
       {inquiries.map(([id, q]) => {
         const phone = q.phone.replace(/[^0-9]/g, '');
+        const status = q.status ?? 'new';
         return (
           <div key={id} className="p-5 flex flex-col sm:flex-row justify-between gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <strong className="text-gray-900">{q.name}</strong>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{q.source.replace('_', ' ')}</span>
+                {status === 'new' && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-bold">New</span>
+                )}
+                {status === 'contacted' && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-bold inline-flex items-center gap-1">
+                    <CheckCircle size={10} /> Contacted
+                  </span>
+                )}
+                {status === 'closed' && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-500 font-bold inline-flex items-center gap-1">
+                    <Clock size={10} /> Closed
+                  </span>
+                )}
               </div>
               <div className="text-sm text-gray-600 mt-1">📞 {q.phone} {q.email && `· ✉ ${q.email}`}</div>
               {q.propertyName && <div className="text-sm text-[var(--color-navy)] mt-1">🏠 {q.propertyName}</div>}
               {q.message && <div className="text-sm text-gray-500 mt-1 italic">&ldquo;{q.message}&rdquo;</div>}
               <div className="text-xs text-gray-400 mt-1">{q.createdAtIN}</div>
             </div>
-            <div className="flex gap-1.5 flex-wrap">
+            <div className="flex gap-1.5 flex-wrap items-start">
               <a href={waLink(phone, `Hi ${q.name}, this is SMA Builders.`)} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-md bg-[var(--color-wa)] text-white text-xs font-bold inline-flex items-center gap-1">
                 <MessageCircle size={12} /> WA
               </a>
@@ -265,6 +306,16 @@ function LeadsTab({ inquiries, onDelete }: { inquiries: [string, Inquiry][]; onD
                 <a href={`mailto:${q.email}`} className="px-3 py-1.5 rounded-md bg-amber-500 text-gray-900 text-xs font-bold inline-flex items-center gap-1">
                   <Mail size={12} /> Email
                 </a>
+              )}
+              {status !== 'contacted' && (
+                <button onClick={() => onStatusChange(id, 'contacted')} className="px-3 py-1.5 rounded-md bg-green-100 text-green-700 text-xs font-bold inline-flex items-center gap-1">
+                  <CheckCircle size={12} /> Done
+                </button>
+              )}
+              {status !== 'closed' && (
+                <button onClick={() => onStatusChange(id, 'closed')} className="px-3 py-1.5 rounded-md bg-gray-100 text-gray-600 text-xs font-bold inline-flex items-center gap-1">
+                  <Clock size={12} /> Close
+                </button>
               )}
               <button onClick={() => onDelete(id)} className="px-3 py-1.5 rounded-md bg-red-100 text-red-700 text-xs font-bold inline-flex items-center gap-1">
                 <Trash2 size={12} />

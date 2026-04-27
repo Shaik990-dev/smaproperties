@@ -1,6 +1,6 @@
 'use client';
 
-import { ref, push, get, remove } from 'firebase/database';
+import { ref, push, get, remove, set } from 'firebase/database';
 import { db } from './firebase';
 
 export type InquirySource = 'home_contact' | 'property_detail' | 'quick_enquiry';
@@ -47,4 +47,8 @@ export async function getInquiries(): Promise<Record<string, Inquiry>> {
 
 export async function deleteInquiry(id: string) {
   await remove(ref(db, `inquiries/${id}`));
+}
+
+export async function updateInquiryStatus(id: string, status: 'new' | 'contacted' | 'closed') {
+  await set(ref(db, `inquiries/${id}/status`), status);
 }
