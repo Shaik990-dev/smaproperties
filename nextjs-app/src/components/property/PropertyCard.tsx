@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { MapPin, ArrowRight, CheckCircle, Phone } from 'lucide-react';
+import { MapPin, ArrowRight, CheckCircle, XCircle, Phone } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { FavoriteButton } from './FavoriteButton';
 import { CompareButton } from './CompareButton';
@@ -8,14 +8,20 @@ import { useLang } from '@/components/layout/LanguageContext';
 import { AGENTS } from '@/data/agents';
 import type { Property } from '@/lib/types';
 
+function isSold(availability: string) {
+  const a = availability.toLowerCase();
+  return a.includes('sold') || a.includes('not available') || a.includes('unavailable') || a.includes('closed');
+}
+
 export function PropertyCard({ property: p, index = 0 }: { property: Property; index?: number }) {
   const { lang } = useLang();
   const displayName = lang === 'te' && p.nameLocal ? p.nameLocal : p.name;
+  const sold = isSold(p.availability);
 
   return (
     <Link
       href={`/properties/${p.id}`}
-      className="group block bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 fade-in"
+      className={`group block bg-white rounded-2xl overflow-hidden border shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 fade-in ${sold ? 'border-gray-300 opacity-80' : 'border-gray-200'}`}
       style={{ animationDelay: `${index * 70}ms` }}
     >
       {/* Image */}
@@ -26,14 +32,22 @@ export function PropertyCard({ property: p, index = 0 }: { property: Property; i
             alt={p.name}
             fill
             sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            className={`object-cover group-hover:scale-105 transition-transform duration-500 ${sold ? 'grayscale-[40%]' : ''}`}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-6xl">
             {p.emoji || '🏠'}
           </div>
         )}
-        {p.badge && (
+        {/* SOLD banner overlay */}
+        {sold && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="rotate-[-20deg] bg-red-600 text-white text-sm font-black px-6 py-1.5 rounded shadow-lg tracking-widest uppercase">
+              Sold Out
+            </span>
+          </div>
+        )}
+        {!sold && p.badge && (
           <div className="absolute top-3 left-3">
             <Badge color={p.badgeColor}>{p.badge}</Badge>
           </div>
@@ -82,9 +96,15 @@ export function PropertyCard({ property: p, index = 0 }: { property: Property; i
         </div>
 
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-          <span className="inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-50 px-2.5 py-1 rounded-full">
-            <CheckCircle size={12} /> {p.availability}
-          </span>
+          {sold ? (
+            <span className="inline-flex items-center gap-1 text-xs font-bold text-red-700 bg-red-50 px-2.5 py-1 rounded-full">
+              <XCircle size={12} /> {p.availability}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1 text-xs font-bold text-green-700 bg-green-50 px-2.5 py-1 rounded-full">
+              <CheckCircle size={12} /> {p.availability}
+            </span>
+          )}
           <span className="inline-flex items-center gap-1 text-[var(--color-navy)] text-sm font-bold group-hover:gap-2 transition-all">
             View <ArrowRight size={14} />
           </span>

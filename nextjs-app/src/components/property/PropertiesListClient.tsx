@@ -7,6 +7,11 @@ import type { Property, PropertyType } from '@/lib/types';
 
 type SortKey = 'newest' | 'price-asc' | 'price-desc' | 'name-asc';
 
+function isSold(availability: string) {
+  const a = availability.toLowerCase();
+  return a.includes('sold') || a.includes('not available') || a.includes('unavailable') || a.includes('closed');
+}
+
 const TYPE_FILTERS: { value: PropertyType | 'all'; label: string; emoji: string }[] = [
   { value: 'all', label: 'All', emoji: '🏠' },
   { value: 'plot', label: 'Plots & Layouts', emoji: '🏘️' },
@@ -47,6 +52,7 @@ export function PropertiesListClient({ initialProperties }: { initialProperties:
   const [maxPrice, setMaxPrice] = useState<string>('');
   const [sort, setSort] = useState<SortKey>('newest');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [availableOnly, setAvailableOnly] = useState(false);
 
   const locations = useMemo(() => extractLocations(initialProperties), [initialProperties]);
 
@@ -54,6 +60,8 @@ export function PropertiesListClient({ initialProperties }: { initialProperties:
     let result = initialProperties.filter((p) => {
       // Type
       if (type !== 'all' && p.type !== type) return false;
+      // Available only
+      if (availableOnly && isSold(p.availability)) return false;
       // Search
       if (query) {
         const q = query.toLowerCase();
@@ -95,7 +103,8 @@ export function PropertiesListClient({ initialProperties }: { initialProperties:
     (location !== 'all' ? 1 : 0) +
     (minPrice ? 1 : 0) +
     (maxPrice ? 1 : 0) +
-    (query ? 1 : 0);
+    (query ? 1 : 0) +
+    (availableOnly ? 1 : 0);
 
   const clearAll = () => {
     setType('all');
@@ -104,6 +113,7 @@ export function PropertiesListClient({ initialProperties }: { initialProperties:
     setMinPrice('');
     setMaxPrice('');
     setSort('newest');
+    setAvailableOnly(false);
   };
 
   return (
@@ -139,7 +149,7 @@ export function PropertiesListClient({ initialProperties }: { initialProperties:
         </button>
       </div>
 
-      {/* Type chips */}
+      {/* Type chips + available-only toggle */}
       <div className="flex gap-2 overflow-x-auto pb-2 mb-4 no-scrollbar">
         {TYPE_FILTERS.map((f) => (
           <button
@@ -155,6 +165,16 @@ export function PropertiesListClient({ initialProperties }: { initialProperties:
             {f.label}
           </button>
         ))}
+        <button
+          onClick={() => setAvailableOnly((v) => !v)}
+          className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-bold border-2 transition-colors ${
+            availableOnly
+              ? 'bg-green-600 text-white border-green-600'
+              : 'bg-white text-green-700 border-gray-200 hover:border-green-600'
+          }`}
+        >
+          ✅ Available only
+        </button>
       </div>
 
       {/* Advanced filters drawer */}

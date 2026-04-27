@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, MapPin, Phone, MessageCircle, CheckCircle } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, MessageCircle, CheckCircle, XCircle } from 'lucide-react';
 import { getPropertiesServer, getPropertyServer } from '@/lib/firebase-server';
 import { PropertyGallery } from '@/components/property/PropertyGallery';
 import { PropertyMap } from '@/components/property/PropertyMap';
@@ -184,9 +184,19 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                   <span>{p.address}</span>
                 </div>
 
-                <div className="inline-flex items-center gap-1 mt-3 text-sm font-bold text-green-700 bg-green-50 px-3 py-1.5 rounded-full">
-                  <CheckCircle size={14} /> {p.availability}
-                </div>
+                {(() => {
+                  const a = p.availability.toLowerCase();
+                  const sold = a.includes('sold') || a.includes('not available') || a.includes('unavailable') || a.includes('closed');
+                  return sold ? (
+                    <div className="inline-flex items-center gap-1 mt-3 text-sm font-bold text-red-700 bg-red-50 px-3 py-1.5 rounded-full">
+                      <XCircle size={14} /> {p.availability}
+                    </div>
+                  ) : (
+                    <div className="inline-flex items-center gap-1 mt-3 text-sm font-bold text-green-700 bg-green-50 px-3 py-1.5 rounded-full">
+                      <CheckCircle size={14} /> {p.availability}
+                    </div>
+                  );
+                })()}
 
                 <div className="flex flex-wrap gap-2 mt-5">
                   {p.tags.map((t) => (
