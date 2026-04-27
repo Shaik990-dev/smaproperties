@@ -52,16 +52,24 @@ export function PropertiesListClient({ initialProperties }: { initialProperties:
   const [maxPrice, setMaxPrice] = useState<string>('');
   const [sort, setSort] = useState<SortKey>('newest');
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [availableOnly, setAvailableOnly] = useState(false);
+  const [showSold, setShowSold] = useState(false);
 
-  const locations = useMemo(() => extractLocations(initialProperties), [initialProperties]);
+  // Split available vs sold upfront — sold properties go to their own section
+  const availableProperties = useMemo(
+    () => initialProperties.filter((p) => !isSold(p.availability)),
+    [initialProperties]
+  );
+  const soldProperties = useMemo(
+    () => initialProperties.filter((p) => isSold(p.availability)),
+    [initialProperties]
+  );
+
+  const locations = useMemo(() => extractLocations(availableProperties), [availableProperties]);
 
   const filtered = useMemo(() => {
-    let result = initialProperties.filter((p) => {
+    let result = availableProperties.filter((p) => {
       // Type
       if (type !== 'all' && p.type !== type) return false;
-      // Available only
-      if (availableOnly && isSold(p.availability)) return false;
       // Search
       if (query) {
         const q = query.toLowerCase();
@@ -92,19 +100,17 @@ export function PropertiesListClient({ initialProperties }: { initialProperties:
       case 'name-asc':
         result = [...result].sort((a, b) => a.name.localeCompare(b.name));
         break;
-      // newest = original order (Firebase push key order is chronological)
     }
 
     return result;
-  }, [initialProperties, type, query, location, minPrice, maxPrice, sort]);
+  }, [availableProperties, type, query, location, minPrice, maxPrice, sort]);
 
   const activeFilterCount =
     (type !== 'all' ? 1 : 0) +
     (location !== 'all' ? 1 : 0) +
     (minPrice ? 1 : 0) +
     (maxPrice ? 1 : 0) +
-    (query ? 1 : 0) +
-    (availableOnly ? 1 : 0);
+    (query ? 1 : 0);
 
   const clearAll = () => {
     setType('all');
@@ -113,7 +119,6 @@ export function PropertiesListClient({ initialProperties }: { initialProperties:
     setMinPrice('');
     setMaxPrice('');
     setSort('newest');
-    setAvailableOnly(false);
   };
 
   return (
@@ -149,7 +154,7 @@ export function PropertiesListClient({ initialProperties }: { initialProperties:
         </button>
       </div>
 
-      {/* Type chips + available-only toggle */}
+      {/* Type chips */}
       <div className="flex gap-2 overflow-x-auto pb-2 mb-4 no-scrollbar">
         {TYPE_FILTERS.map((f) => (
           <button
@@ -165,16 +170,6 @@ export function PropertiesListClient({ initialProperties }: { initialProperties:
             {f.label}
           </button>
         ))}
-        <button
-          onClick={() => setAvailableOnly((v) => !v)}
-          className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-bold border-2 transition-colors ${
-            availableOnly
-              ? 'bg-green-600 text-white border-green-600'
-              : 'bg-white text-green-700 border-gray-200 hover:border-green-600'
-          }`}
-        >
-          ✅ Available only
-        </button>
       </div>
 
       {/* Advanced filters drawer */}
@@ -253,6 +248,40 @@ export function PropertiesListClient({ initialProperties }: { initialProperties:
             <PropertyCard key={p.id} property={p} index={i} />
           ))}
         </div>
+      )}
+
+      {/* Sold Properties — trust-building section */}
+      {soldProperties.length > 0 && (
+        <section className="mt-16 pt-10 border-t-2 border-gray-100">
+          <div className="flex items-center justify-between flex-wrap gap-3 mb-2">
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="text-3xl font-black text-gray-900">{soldProperties.length}</span>
+                <span className="font-display text-2xl font-black text-gray-900">
+                  {soldProperties.length === 1 ? 'Property' : 'Properties'} Sold
+                </span>
+                <span className="px-2.5 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold">✅ Verified</span>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
+                Real clients, real transactions — proof of our trust and service in Nellore.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowSold((v) => !v)}
+              className="px-4 py-2 rounded-lg border-2 border-gray-200 text-sm font-bold text-gray-700 hover:border-[var(--color-navy)] hover:text-[var(--color-navy)] transition-colors"
+            >
+              {showSold ? 'Hide' : 'View Sold Properties'}
+            </button>
+          </div>
+
+          {showSold && (
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {soldProperties.map((p, i) => (
+                <PropertyCard key={p.id} property={p} index={i} />
+              ))}
+            </div>
+          )}
+        </section>
       )}
     </>
   );

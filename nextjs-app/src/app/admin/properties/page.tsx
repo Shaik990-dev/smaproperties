@@ -2,9 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Plus, Edit3, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Edit3, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { fetchProperties, deleteProperty } from '@/lib/properties';
+import { fetchProperties, deleteProperty, markPropertyAvailability } from '@/lib/properties';
+
+function isSold(availability: string) {
+  const a = availability.toLowerCase();
+  return a.includes('sold') || a.includes('not available') || a.includes('unavailable') || a.includes('closed');
+}
 import { PropertyForm } from '@/components/admin/PropertyForm';
 import type { Property } from '@/lib/types';
 
@@ -15,11 +20,25 @@ export default function AdminPropertiesPage() {
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState<Mode>({ kind: 'list' });
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [markingSold, setMarkingSold] = useState<Set<string>>(new Set());
 
   const refresh = async () => {
     setLoading(true);
     setProps(await fetchProperties());
     setLoading(false);
+  };
+
+  const handleMarkSold = async (p: Property, sold: boolean) => {
+    setMarkingSold((s) => new Set(s).add(p.id));
+    try {
+      await markPropertyAvailability(p.id, sold ? 'Sold Out' : 'Available');
+      toast.success(sold ? `"${p.name}" marked as sold` : `"${p.name}" marked as available`);
+      await refresh();
+    } catch {
+      toast.error('Could not update availability.');
+    } finally {
+      setMarkingSold((s) => { const n = new Set(s); n.delete(p.id); return n; });
+    }
   };
 
   const handleQuickDelete = async (p: Property) => {
@@ -108,11 +127,34 @@ export default function AdminPropertiesPage() {
                     <div className="text-xs text-gray-400 truncate mt-0.5">📍 {p.address}</div>
                   </div>
                 </div>
-                <div className="flex gap-2 flex-shrink-0">
-                  {p.price && (
-                    <span className="hidden sm:flex items-center px-2.5 py-1 rounded-md bg-green-50 text-green-700 text-xs font-bold">
-                      {p.price}
+                <div className="flex gap-2 flex-shrink-0 flex-wrap">
+                  {/* Availability status badge */}
+                  {isSold(p.availability) ? (
+                    <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-red-50 text-red-700 text-xs font-bold">
+                      <XCircle size={11} /> Sold
                     </span>
+                  ) : (
+                    <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-green-50 text-green-700 text-xs font-bold">
+                      <CheckCircle size={11} /> {p.price || 'Available'}
+                    </span>
+                  )}
+                  {/* Mark sold / available toggle */}
+                  {isSold(p.availability) ? (
+                    <button
+                      onClick={() => handleMarkSold(p, false)}
+                      disabled={markingSold.has(p.id)}
+                      className="px-3 py-1.5 rounded-md bg-green-600 text-white text-xs font-bold inline-flex items-center gap-1 disabled:opacity-50 hover:bg-green-700"
+                    >
+                      <CheckCircle size={12} /> {markingSold.has(p.id) ? '…' : 'Mark Available'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleMarkSold(p, true)}
+                      disabled={markingSold.has(p.id)}
+                      className="px-3 py-1.5 rounded-md bg-orange-500 text-white text-xs font-bold inline-flex items-center gap-1 disabled:opacity-50 hover:bg-orange-600"
+                    >
+                      <XCircle size={12} /> {markingSold.has(p.id) ? '…' : 'Mark Sold'}
+                    </button>
                   )}
                   <Link
                     href={`/properties/${p.id}`}

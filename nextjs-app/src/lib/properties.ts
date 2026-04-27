@@ -59,6 +59,12 @@ export async function saveProperty(p: Property): Promise<void> {
   await set(ref(db, `properties/${p.id}`), p);
 }
 
+export async function markPropertyAvailability(id: string, availability: string): Promise<void> {
+  const current = await fetchProperty(id);
+  if (!current) throw new Error(`Property ${id} not found`);
+  await saveProperty({ ...current, availability });
+}
+
 export async function deleteProperty(id: string): Promise<void> {
   await ensureSeeded();
   await remove(ref(db, `properties/${id}`));
