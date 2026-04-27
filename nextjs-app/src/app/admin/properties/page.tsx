@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Plus, Edit3 } from 'lucide-react';
-import { fetchProperties } from '@/lib/properties';
+import { ArrowLeft, Plus, Edit3, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { fetchProperties, deleteProperty } from '@/lib/properties';
 import { PropertyForm } from '@/components/admin/PropertyForm';
 import type { Property } from '@/lib/types';
 
@@ -13,11 +14,26 @@ export default function AdminPropertiesPage() {
   const [props, setProps] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState<Mode>({ kind: 'list' });
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   const refresh = async () => {
     setLoading(true);
     setProps(await fetchProperties());
     setLoading(false);
+  };
+
+  const handleQuickDelete = async (p: Property) => {
+    if (!confirm(`Delete "${p.name}"? This cannot be undone.`)) return;
+    setDeleting(p.id);
+    try {
+      await deleteProperty(p.id);
+      toast.success('Property deleted');
+      await refresh();
+    } catch {
+      toast.error('Could not delete. Check Firebase rules.');
+    } finally {
+      setDeleting(null);
+    }
   };
 
   useEffect(() => {
@@ -92,7 +108,12 @@ export default function AdminPropertiesPage() {
                     <div className="text-xs text-gray-400 truncate mt-0.5">📍 {p.address}</div>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-shrink-0">
+                  {p.price && (
+                    <span className="hidden sm:flex items-center px-2.5 py-1 rounded-md bg-green-50 text-green-700 text-xs font-bold">
+                      {p.price}
+                    </span>
+                  )}
                   <Link
                     href={`/properties/${p.id}`}
                     target="_blank"
@@ -106,6 +127,13 @@ export default function AdminPropertiesPage() {
                     className="px-3 py-1.5 rounded-md bg-[var(--color-navy)] text-white text-xs font-bold inline-flex items-center gap-1"
                   >
                     <Edit3 size={12} /> Edit
+                  </button>
+                  <button
+                    onClick={() => handleQuickDelete(p)}
+                    disabled={deleting === p.id}
+                    className="px-3 py-1.5 rounded-md bg-red-600 text-white text-xs font-bold inline-flex items-center gap-1 disabled:opacity-50 hover:bg-red-700"
+                  >
+                    <Trash2 size={12} /> {deleting === p.id ? '…' : 'Delete'}
                   </button>
                 </div>
               </div>

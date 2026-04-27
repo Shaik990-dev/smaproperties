@@ -13,16 +13,18 @@ export const DEFAULT_PROPERTIES: Property[] = [
     emoji: '🏘️',
     address: 'Ramadasu Kandriga Grama Panchayat, Venkatachalam Mandal, Nellore',
     availability: '2 Plots Available',
-    tags: ['33½ Ankanams', 'West Facing', 'Kandriga', 'Venkatachalam Mandal'],
+    tags: ['33½ Ankanams', 'West Facing', 'Near Krishnapatnam Port', 'Venkatachalam Mandal'],
     facing: 'West',
     area: '33½ Ankanams',
+    price: 'From ₹10 Lakhs',
+    priceNumber: 1000000,
     details: [
       { icon: '🏘️', label: 'Layout', value: 'Srinivasa Layout' },
       { icon: '📐', label: 'Plot Size', value: '33½ Ankanams each' },
       { icon: '🧭', label: 'Facing', value: 'West Facing' },
       { icon: '📍', label: 'Address', value: 'Ramadasu Kandriga, Venkatachalam Mandal, Nellore AP' },
       { icon: '📜', label: 'Documents', value: 'Clear Title – Ready for Registration' },
-      { icon: '💰', label: 'Price', value: 'Contact for best price' }
+      { icon: '💰', label: 'Price', value: 'From ₹10 Lakhs onwards' }
     ],
     pics: ['https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80']
   },
@@ -38,15 +40,18 @@ export const DEFAULT_PROPERTIES: Property[] = [
     emoji: '🏘️',
     address: 'Ramadasu Kandriga Grama Panchayat, Venkatachalam Mandal, Nellore',
     availability: '1 Plot Available',
-    tags: ['33½ Ankanams', 'East Facing', 'Kandriga'],
+    tags: ['33½ Ankanams', 'East Facing', 'Near Krishnapatnam Port'],
     facing: 'East',
     area: '33½ Ankanams',
+    price: 'From ₹10 Lakhs',
+    priceNumber: 1000000,
     details: [
       { icon: '🏘️', label: 'Layout', value: 'Srinivasa Layout' },
       { icon: '📐', label: 'Plot Size', value: '33½ Ankanams' },
       { icon: '🧭', label: 'Facing', value: 'East Facing' },
-      { icon: '📜', label: 'Documents', value: 'Clear Title' },
-      { icon: '💰', label: 'Price', value: 'Contact us' }
+      { icon: '📍', label: 'Address', value: 'Ramadasu Kandriga, Venkatachalam Mandal, Nellore AP' },
+      { icon: '📜', label: 'Documents', value: 'Clear Title – Ready for Registration' },
+      { icon: '💰', label: 'Price', value: 'From ₹10 Lakhs onwards' }
     ],
     pics: ['https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=1200&q=80']
   },
@@ -75,31 +80,6 @@ export const DEFAULT_PROPERTIES: Property[] = [
       { icon: '💰', label: 'Price', value: 'From ₹10 Lakhs onwards' }
     ],
     pics: ['https://images.unsplash.com/photo-1625602812206-5ec545ca1231?w=1200&q=80']
-  },
-  {
-    id: 'p7',
-    name: 'Krishnapatnam Port Area Plots',
-    nameLocal: 'కృష్ణపట్నం పోర్ట్ సమీప స్థలాలు',
-    type: 'plot',
-    typeLabel: 'Layout / లేఅవుట్',
-    badge: 'Hot Deal',
-    badgeColor: 'hot',
-    bgColor: '#d1fae5',
-    emoji: '⚓',
-    address: 'Near Krishnapatnam Port, Nellore District, Andhra Pradesh',
-    availability: 'Plots Available',
-    tags: ['Near Port', 'High Growth Area', 'Investment'],
-    area: 'Multiple sizes',
-    price: 'From ₹10 Lakhs',
-    priceNumber: 1000000,
-    details: [
-      { icon: '⚓', label: 'Location', value: 'Near Krishnapatnam Port, Nellore' },
-      { icon: '📈', label: 'Investment', value: 'High growth — Industrial corridor' },
-      { icon: '🛣️', label: 'Access', value: 'NH-16 & Port Road connectivity' },
-      { icon: '📜', label: 'Documents', value: 'Clear Title Documents' },
-      { icon: '💰', label: 'Price', value: 'From ₹10 Lakhs onwards' }
-    ],
-    pics: ['https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80']
   },
   {
     id: 'p4',

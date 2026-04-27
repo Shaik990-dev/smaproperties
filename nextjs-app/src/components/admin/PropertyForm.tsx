@@ -265,6 +265,27 @@ export function PropertyForm({ property, onSaved, onCancel }: Props) {
           </Field>
         </div>
 
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field label="Price Display Text *">
+            <input
+              value={p.price || ''}
+              onChange={(e) => update('price', e.target.value)}
+              className={inputCls}
+              placeholder="e.g. ₹25 Lakhs  /  From ₹10 Lakhs  /  ₹1,200/sq yd"
+            />
+            <p className="text-xs text-gray-400 mt-1">This is what shows on the property card.</p>
+          </Field>
+          <Field label="Price (numeric, for sorting)">
+            <input
+              type="number"
+              value={p.priceNumber || ''}
+              onChange={(e) => update('priceNumber', e.target.value ? Number(e.target.value) : undefined)}
+              className={inputCls}
+              placeholder="2500000"
+            />
+          </Field>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Field label="Facing">
             <input value={p.facing || ''} onChange={(e) => update('facing', e.target.value)} className={inputCls} placeholder="East / West / North / South" />
@@ -277,14 +298,8 @@ export function PropertyForm({ property, onSaved, onCancel }: Props) {
               className={inputCls}
             />
           </Field>
-          <Field label="Price (₹, numeric)">
-            <input
-              type="number"
-              value={p.priceNumber || ''}
-              onChange={(e) => update('priceNumber', e.target.value ? Number(e.target.value) : undefined)}
-              className={inputCls}
-              placeholder="2500000"
-            />
+          <Field label="Area / Plot Size">
+            <input value={p.area || ''} onChange={(e) => update('area', e.target.value)} className={inputCls} placeholder="867 sq.ft / 25 Ankanams" />
           </Field>
         </div>
 
