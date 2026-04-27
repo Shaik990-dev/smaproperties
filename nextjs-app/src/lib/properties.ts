@@ -10,8 +10,12 @@ export async function fetchProperties(): Promise<Property[]> {
     const snap = await get(ref(db, 'properties'));
     if (!snap.exists()) return DEFAULT_PROPERTIES;
     const data = snap.val() as Record<string, Property>;
-    const list = Object.values(data);
-    return list.length ? list : DEFAULT_PROPERTIES;
+    const fromDb = Object.values(data);
+    if (!fromDb.length) return DEFAULT_PROPERTIES;
+    // Fill in any DEFAULT_PROPERTIES that are missing from Firebase
+    const dbIds = new Set(fromDb.map((p) => p.id));
+    const missing = DEFAULT_PROPERTIES.filter((p) => !dbIds.has(p.id));
+    return [...fromDb, ...missing];
   } catch (e) {
     console.warn('fetchProperties error', e);
     return DEFAULT_PROPERTIES;
@@ -26,17 +30,18 @@ export async function fetchProperty(id: string): Promise<Property | null> {
   return DEFAULT_PROPERTIES.find((p) => p.id === id) || null;
 }
 
-// Seed all DEFAULT_PROPERTIES into Firebase if the node is empty.
-// Called before any write so the first save/delete doesn't wipe the rest.
+// Upsert all DEFAULT_PROPERTIES that are missing from Firebase.
+// Called before every write so no default listing is ever permanently lost.
 async function ensureSeeded(): Promise<void> {
   const snap = await get(ref(db, 'properties'));
-  if (!snap.exists()) {
-    const batch: Record<string, Property> = {};
-    for (const p of DEFAULT_PROPERTIES) {
-      batch[p.id] = p;
+  const existing = snap.exists() ? (snap.val() as Record<string, Property>) : {};
+  const writes: Promise<void>[] = [];
+  for (const p of DEFAULT_PROPERTIES) {
+    if (!existing[p.id]) {
+      writes.push(set(ref(db, `properties/${p.id}`), p));
     }
-    await set(ref(db, 'properties'), batch);
   }
+  await Promise.all(writes);
 }
 
 export async function saveProperty(p: Property): Promise<void> {

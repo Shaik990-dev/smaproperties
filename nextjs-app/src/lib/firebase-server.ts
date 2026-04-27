@@ -23,8 +23,12 @@ export async function getPropertiesServer(): Promise<Property[]> {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = (await res.json()) as Record<string, Property> | null;
     if (!data) return DEFAULT_PROPERTIES;
-    const list = Object.values(data);
-    return list.length ? list : DEFAULT_PROPERTIES;
+    const fromDb = Object.values(data);
+    if (!fromDb.length) return DEFAULT_PROPERTIES;
+    // Fill in any DEFAULT_PROPERTIES missing from Firebase (deleted or not yet pushed)
+    const dbIds = new Set(fromDb.map((p) => p.id));
+    const missing = DEFAULT_PROPERTIES.filter((p) => !dbIds.has(p.id));
+    return [...fromDb, ...missing];
   } catch (e) {
     console.warn('getPropertiesServer fallback to seed data:', e);
     return DEFAULT_PROPERTIES;
