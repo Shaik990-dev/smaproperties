@@ -1,14 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, MapPin, Phone, MessageCircle, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, MapPin, CheckCircle, XCircle } from 'lucide-react';
 import { getPropertiesServer, getPropertyServer } from '@/lib/firebase-server';
 import { PropertyGallery } from '@/components/property/PropertyGallery';
 import { PropertyMap } from '@/components/property/PropertyMap';
 import { Badge } from '@/components/ui/Badge';
-import { AGENTS } from '@/data/agents';
-import { waLink, telLink } from '@/lib/utils';
 import { breadcrumbJsonLd } from '@/lib/seo';
+import { ContactAgentPanel } from '@/components/property/ContactAgentPanel';
 import type { Property } from '@/lib/types';
 
 export const revalidate = 60;
@@ -260,37 +259,9 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               )}
             </div>
 
-            {/* Right – contact agents (sticky) */}
+            {/* Right – contact agents (sticky, auth-gated) */}
             <aside className="lg:sticky lg:top-24 lg:self-start space-y-4">
-              <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                <h3 className="font-bold text-gray-900 mb-1">📞 Contact Our Agents</h3>
-                <p className="text-xs text-gray-500 mb-5">Get in touch directly via call or WhatsApp.</p>
-
-                {AGENTS.map((a) => (
-                  <div key={a.name} className="mb-5 last:mb-0">
-                    <p className="font-semibold text-sm text-gray-900 mb-2">👤 {a.name}</p>
-                    <div className="flex flex-col gap-2">
-                      <a
-                        href={waLink(a.whatsapp, enquiryMsg)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[var(--color-wa)] text-white text-sm font-bold"
-                      >
-                        <MessageCircle size={14} /> WhatsApp
-                      </a>
-                      {a.phones.map((ph) => (
-                        <a
-                          key={ph}
-                          href={telLink(ph)}
-                          className="inline-flex items-center justify-center gap-2 py-2.5 rounded-lg bg-[var(--color-navy)] text-white text-sm font-bold"
-                        >
-                          <Phone size={14} /> {ph}
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <ContactAgentPanel enquiryMsg={enquiryMsg} />
             </aside>
           </div>
         </div>

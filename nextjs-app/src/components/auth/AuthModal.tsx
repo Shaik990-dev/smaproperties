@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
-import { X } from 'lucide-react';
+import { X, Smartphone, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { registerUser, loginUser } from '@/lib/auth';
+import { registerUser, loginUser, sendPhoneOtp, verifyPhoneOtp, type ConfirmationResult } from '@/lib/auth';
 import { notifyOwner } from '@/lib/emailjs';
 import { useAuth } from './AuthProvider';
 
@@ -74,6 +74,14 @@ export function AuthModal({ open, onClose }: Props) {
   const [lockedSecs, setLockedSecs] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // OTP registration state
+  const [otpStage, setOtpStage] = useState<'details' | 'verify'>('details');
+  const [otpConfirmation, setOtpConfirmation] = useState<ConfirmationResult | null>(null);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpResend, setOtpResend] = useState(0);
+  const otpTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   useEffect(() => {
     if (tab !== 'forgot') return;
     syncRL();
@@ -100,8 +108,58 @@ export function AuthModal({ open, onClose }: Props) {
 
   if (!open) return null;
 
-  const reset = () => { setName(''); setPhone(''); setEmail(''); setPassword(''); setInterest(''); setMsg(null); };
+  const reset = () => {
+    setName(''); setPhone(''); setEmail(''); setPassword(''); setInterest(''); setMsg(null);
+    setOtpStage('details'); setOtpCode(''); setOtpConfirmation(null); setOtpResend(0);
+    if (otpTimerRef.current) clearInterval(otpTimerRef.current);
+  };
   const handleClose = () => { reset(); setTab('login'); if (timerRef.current) clearInterval(timerRef.current); onClose(); };
+
+  /* ── Send OTP ── */
+  const handleSendOtp = async () => {
+    if (!name || !phone || !email || !password) { setMsg({ kind: 'err', text: 'Please fill all required fields' }); return; }
+    if (!/^[6-9]\d{9}$/.test(phone.replace(/[\s\-]/g, ''))) { setMsg({ kind: 'err', text: 'Enter a valid 10-digit Indian mobile number' }); return; }
+    if (password.length < 6) { setMsg({ kind: 'err', text: 'Password must be at least 6 characters' }); return; }
+    setOtpSending(true); setMsg(null);
+    try {
+      const confirmation = await sendPhoneOtp(phone.replace(/[\s\-]/g, ''), 'recaptcha-container');
+      setOtpConfirmation(confirmation);
+      setOtpStage('verify');
+      setOtpResend(60);
+      otpTimerRef.current = setInterval(() => {
+        setOtpResend((v) => { if (v <= 1) { clearInterval(otpTimerRef.current!); return 0; } return v - 1; });
+      }, 1000);
+    } catch {
+      setMsg({ kind: 'err', text: 'Could not send OTP. Please check your number and try again.' });
+    } finally { setOtpSending(false); }
+  };
+
+  /* ── Verify OTP + Register ── */
+  const handleVerifyAndRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otpConfirmation) return;
+    if (otpCode.length !== 6) { setMsg({ kind: 'err', text: 'Enter the 6-digit OTP sent to your phone' }); return; }
+    setLoading(true); setMsg(null);
+    try {
+      await verifyPhoneOtp(otpConfirmation, otpCode);
+      await registerUser({ name, phone, email, password, interest });
+      await refresh();
+      notifyOwner({ type: 'registration', name, phone, email, interest }).catch(() => {});
+      toast.success(`Welcome, ${name}! 🎉`);
+      setMsg({ kind: 'ok', text: '✅ Phone verified! Account created successfully.' });
+      setTimeout(handleClose, 900);
+    } catch (err) {
+      const code = (err as { code?: string }).code ?? '';
+      if (code === 'auth/invalid-verification-code') {
+        setMsg({ kind: 'err', text: 'Wrong OTP. Please check and try again.' });
+      } else if (code === 'auth/code-expired') {
+        setMsg({ kind: 'err', text: 'OTP expired. Please go back and request a new one.' });
+        setOtpStage('details'); setOtpCode('');
+      } else {
+        setMsg({ kind: 'err', text: friendlyAuthError(err) });
+      }
+    } finally { setLoading(false); }
+  };
   const switchTab = (t: Tab) => { setMsg(null); setTab(t); };
 
   /* ── Login ── */
@@ -114,27 +172,6 @@ export function AuthModal({ open, onClose }: Props) {
       toast.success(`Welcome back, ${u.name}!`);
       setMsg({ kind: 'ok', text: '✅ Signed in successfully' });
       setTimeout(handleClose, 700);
-    } catch (err) {
-      const text = friendlyAuthError(err);
-      setMsg({ kind: 'err', text });
-      toast.error(text);
-    } finally { setLoading(false); }
-  };
-
-  /* ── Register ── */
-  const submitRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !phone || !email || !password) { setMsg({ kind: 'err', text: 'Please fill all required fields' }); return; }
-    if (!/^[6-9]\d{9}$/.test(phone.replace(/[\s\-]/g, ''))) { setMsg({ kind: 'err', text: 'Enter a valid 10-digit Indian mobile number' }); return; }
-    if (password.length < 6) { setMsg({ kind: 'err', text: 'Password must be at least 6 characters' }); return; }
-    setLoading(true); setMsg(null);
-    try {
-      await registerUser({ name, phone, email, password, interest });
-      await refresh();
-      notifyOwner({ type: 'registration', name, phone, email, interest }).catch(() => {});
-      toast.success(`Welcome, ${name}!`);
-      setMsg({ kind: 'ok', text: '✅ Account created! You are now signed in.' });
-      setTimeout(handleClose, 900);
     } catch (err) {
       const text = friendlyAuthError(err);
       setMsg({ kind: 'err', text });
@@ -244,30 +281,68 @@ export function AuthModal({ open, onClose }: Props) {
             </form>
           )}
 
-          {/* ── Register ── */}
-          {tab === 'register' && (
-            <form onSubmit={submitRegister} className="space-y-3">
+          {/* ── Register — Step 1: Details ── */}
+          {tab === 'register' && otpStage === 'details' && (
+            <div className="space-y-3">
               <Field label="Full Name *">
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your full name" className={inputCls} required />
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your full name" className={inputCls} />
               </Field>
-              <Field label="Phone *">
-                <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="9876543210" maxLength={15} className={inputCls} required />
+              <Field label="Mobile Number *">
+                <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="9876543210" maxLength={10} className={inputCls} />
               </Field>
               <Field label="Email *">
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className={inputCls} required />
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className={inputCls} />
               </Field>
               <Field label="Password * (min 6 chars)">
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className={inputCls} required />
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className={inputCls} />
               </Field>
               <Field label="Interested In">
                 <input type="text" value={interest} onChange={(e) => setInterest(e.target.value)} placeholder="Plots / Flats / Houses / Land" className={inputCls} />
               </Field>
-              <Button type="submit" disabled={loading} variant="amber" className="w-full">
-                {loading ? 'Creating…' : '✨ Create Account'}
+              {/* hidden reCAPTCHA container required by Firebase Phone Auth */}
+              <div id="recaptcha-container" />
+              <Button type="button" onClick={handleSendOtp} disabled={otpSending} variant="amber" className="w-full">
+                {otpSending ? 'Sending OTP…' : <><Smartphone size={15} className="inline mr-1" /> Send OTP to Mobile</>}
               </Button>
               <p className="text-xs text-gray-500 text-center leading-relaxed">
-                By registering you allow SMA Builders to contact you.
+                We&apos;ll send a 6-digit OTP to verify your mobile number.
               </p>
+            </div>
+          )}
+
+          {/* ── Register — Step 2: Verify OTP ── */}
+          {tab === 'register' && otpStage === 'verify' && (
+            <form onSubmit={handleVerifyAndRegister} className="space-y-4">
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-200 text-sm text-green-800">
+                <Smartphone size={16} className="flex-shrink-0" />
+                OTP sent to <strong>+91 {phone.slice(0, 5)}XXXXX</strong>
+              </div>
+              <Field label="Enter 6-Digit OTP *">
+                <input
+                  type="number"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.slice(0, 6))}
+                  placeholder="• • • • • •"
+                  className={`${inputCls} text-center text-2xl tracking-[0.5em] font-bold`}
+                  maxLength={6}
+                  autoFocus
+                />
+              </Field>
+              <Button type="submit" disabled={loading || otpCode.length !== 6} variant="amber" className="w-full">
+                {loading ? 'Verifying…' : '✅ Verify & Create Account'}
+              </Button>
+              <div className="flex items-center justify-between text-xs text-gray-500">
+                <button type="button" onClick={() => { setOtpStage('details'); setOtpCode(''); setMsg(null); }} className="inline-flex items-center gap-1 hover:text-[var(--color-navy)]">
+                  <ArrowLeft size={12} /> Change number
+                </button>
+                {otpResend > 0 ? (
+                  <span>Resend OTP in {otpResend}s</span>
+                ) : (
+                  <button type="button" onClick={handleSendOtp} disabled={otpSending} className="text-[var(--color-navy)] font-bold hover:underline disabled:opacity-50">
+                    {otpSending ? 'Sending…' : 'Resend OTP'}
+                  </button>
+                )}
+              </div>
             </form>
           )}
 
