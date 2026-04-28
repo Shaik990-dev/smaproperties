@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
-import { X, Smartphone, ArrowLeft } from 'lucide-react';
+import { X, Mail, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { registerUser, loginUser, sendPhoneOtp, verifyPhoneOtp, type ConfirmationResult } from '@/lib/auth';
+import { registerUser, loginUser } from '@/lib/auth';
 import { notifyOwner } from '@/lib/emailjs';
 import { useAuth } from './AuthProvider';
 
@@ -76,7 +76,6 @@ export function AuthModal({ open, onClose }: Props) {
 
   // OTP registration state
   const [otpStage, setOtpStage] = useState<'details' | 'verify'>('details');
-  const [otpConfirmation, setOtpConfirmation] = useState<ConfirmationResult | null>(null);
   const [otpCode, setOtpCode] = useState('');
   const [otpSending, setOtpSending] = useState(false);
   const [otpResend, setOtpResend] = useState(0);
@@ -110,64 +109,56 @@ export function AuthModal({ open, onClose }: Props) {
 
   const reset = () => {
     setName(''); setPhone(''); setEmail(''); setPassword(''); setInterest(''); setMsg(null);
-    setOtpStage('details'); setOtpCode(''); setOtpConfirmation(null); setOtpResend(0);
+    setOtpStage('details'); setOtpCode(''); setOtpResend(0);
     if (otpTimerRef.current) clearInterval(otpTimerRef.current);
   };
   const handleClose = () => { reset(); setTab('login'); if (timerRef.current) clearInterval(timerRef.current); onClose(); };
 
-  /* ── Send OTP ── */
+  /* ── Send Email OTP ── */
   const handleSendOtp = async () => {
     if (!name || !phone || !email || !password) { setMsg({ kind: 'err', text: 'Please fill all required fields' }); return; }
     if (!/^[6-9]\d{9}$/.test(phone.replace(/[\s\-]/g, ''))) { setMsg({ kind: 'err', text: 'Enter a valid 10-digit Indian mobile number' }); return; }
     if (password.length < 6) { setMsg({ kind: 'err', text: 'Password must be at least 6 characters' }); return; }
     setOtpSending(true); setMsg(null);
     try {
-      const confirmation = await sendPhoneOtp(phone.replace(/[\s\-]/g, ''), 'recaptcha-container');
-      setOtpConfirmation(confirmation);
+      const res = await fetch('/api/auth/send-email-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name }),
+      });
+      const data = await res.json() as { ok?: boolean; error?: string };
+      if (!res.ok) { setMsg({ kind: 'err', text: data.error ?? 'Could not send OTP. Please try again.' }); return; }
       setOtpStage('verify');
       setOtpResend(60);
       otpTimerRef.current = setInterval(() => {
-        setOtpResend((v) => { if (v <= 1) { clearInterval(otpTimerRef.current!); return 0; } return v - 1; });
+        setOtpResend((v: number) => { if (v <= 1) { clearInterval(otpTimerRef.current!); return 0; } return v - 1; });
       }, 1000);
-    } catch (err) {
-      const code = (err as { code?: string }).code ?? 'unknown';
-      console.error('[OTP] Firebase error code:', code, err);
-      let text = `Could not send OTP (${code}). Please try again.`;
-      if (code === 'auth/operation-not-allowed') text = 'Phone verification not enabled. Contact support.';
-      else if (code === 'auth/invalid-phone-number') text = 'Invalid phone number. Please enter a valid 10-digit Indian mobile number.';
-      else if (code === 'auth/quota-exceeded') text = 'SMS limit reached. Please try again later.';
-      else if (code === 'auth/too-many-requests') text = 'Too many attempts. Please wait a few minutes and try again.';
-      else if (code === 'auth/captcha-check-failed' || code === 'auth/recaptcha-not-enabled') text = 'Security check failed. Please refresh the page and try again.';
-      else if (code === 'auth/missing-phone-number') text = 'Phone number is missing. Please enter your mobile number.';
-      else if (code === 'auth/internal-error') text = 'Firebase internal error. Check browser console for details.';
-      setMsg({ kind: 'err', text });
+    } catch {
+      setMsg({ kind: 'err', text: 'Network error. Please check your connection and try again.' });
     } finally { setOtpSending(false); }
   };
 
-  /* ── Verify OTP + Register ── */
+  /* ── Verify Email OTP + Register ── */
   const handleVerifyAndRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!otpConfirmation) return;
-    if (otpCode.length !== 6) { setMsg({ kind: 'err', text: 'Enter the 6-digit OTP sent to your phone' }); return; }
+    if (otpCode.length !== 6) { setMsg({ kind: 'err', text: 'Enter the 6-digit OTP sent to your email' }); return; }
     setLoading(true); setMsg(null);
     try {
-      await verifyPhoneOtp(otpConfirmation, otpCode);
+      const res = await fetch('/api/auth/verify-email-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp: otpCode }),
+      });
+      const data = await res.json() as { ok?: boolean; error?: string };
+      if (!res.ok) { setMsg({ kind: 'err', text: data.error ?? 'Incorrect OTP. Please try again.' }); return; }
       await registerUser({ name, phone, email, password, interest });
       await refresh();
       notifyOwner({ type: 'registration', name, phone, email, interest }).catch(() => {});
       toast.success(`Welcome, ${name}! 🎉`);
-      setMsg({ kind: 'ok', text: '✅ Phone verified! Account created successfully.' });
+      setMsg({ kind: 'ok', text: '✅ Email verified! Account created successfully.' });
       setTimeout(handleClose, 900);
     } catch (err) {
-      const code = (err as { code?: string }).code ?? '';
-      if (code === 'auth/invalid-verification-code') {
-        setMsg({ kind: 'err', text: 'Wrong OTP. Please check and try again.' });
-      } else if (code === 'auth/code-expired') {
-        setMsg({ kind: 'err', text: 'OTP expired. Please go back and request a new one.' });
-        setOtpStage('details'); setOtpCode('');
-      } else {
-        setMsg({ kind: 'err', text: friendlyAuthError(err) });
-      }
+      setMsg({ kind: 'err', text: friendlyAuthError(err) });
     } finally { setLoading(false); }
   };
   const switchTab = (t: Tab) => { setMsg(null); setTab(t); };
@@ -309,13 +300,11 @@ export function AuthModal({ open, onClose }: Props) {
               <Field label="Interested In">
                 <input type="text" value={interest} onChange={(e) => setInterest(e.target.value)} placeholder="Plots / Flats / Houses / Land" className={inputCls} />
               </Field>
-              {/* hidden reCAPTCHA container required by Firebase Phone Auth */}
-              <div id="recaptcha-container" />
               <Button type="button" onClick={handleSendOtp} disabled={otpSending} variant="amber" className="w-full">
-                {otpSending ? 'Sending OTP…' : <><Smartphone size={15} className="inline mr-1" /> Send OTP to Mobile</>}
+                {otpSending ? 'Sending OTP…' : <><Mail size={15} className="inline mr-1" /> Send OTP to Email</>}
               </Button>
               <p className="text-xs text-gray-500 text-center leading-relaxed">
-                We&apos;ll send a 6-digit OTP to verify your mobile number.
+                We&apos;ll send a 6-digit OTP to your email to verify your account.
               </p>
             </div>
           )}
@@ -324,8 +313,8 @@ export function AuthModal({ open, onClose }: Props) {
           {tab === 'register' && otpStage === 'verify' && (
             <form onSubmit={handleVerifyAndRegister} className="space-y-4">
               <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 border border-green-200 text-sm text-green-800">
-                <Smartphone size={16} className="flex-shrink-0" />
-                OTP sent to <strong>+91 {phone.slice(0, 5)}XXXXX</strong>
+                <Mail size={16} className="flex-shrink-0" />
+                OTP sent to <strong>{email}</strong>
               </div>
               <Field label="Enter 6-Digit OTP *">
                 <input
@@ -343,10 +332,10 @@ export function AuthModal({ open, onClose }: Props) {
               </Button>
               <div className="flex items-center justify-between text-xs text-gray-500">
                 <button type="button" onClick={() => { setOtpStage('details'); setOtpCode(''); setMsg(null); }} className="inline-flex items-center gap-1 hover:text-[var(--color-navy)]">
-                  <ArrowLeft size={12} /> Change number
+                  <ArrowLeft size={12} /> Change email
                 </button>
                 {otpResend > 0 ? (
-                  <span>Resend OTP in {otpResend}s</span>
+                  <span>Resend in {otpResend}s</span>
                 ) : (
                   <button type="button" onClick={handleSendOtp} disabled={otpSending} className="text-[var(--color-navy)] font-bold hover:underline disabled:opacity-50">
                     {otpSending ? 'Sending…' : 'Resend OTP'}
