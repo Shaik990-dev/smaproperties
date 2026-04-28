@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { MapPin, ArrowRight, CheckCircle, XCircle, Phone } from 'lucide-react';
@@ -5,6 +7,7 @@ import { Badge } from '@/components/ui/Badge';
 import { FavoriteButton } from './FavoriteButton';
 import { CompareButton } from './CompareButton';
 import { useLang } from '@/components/layout/LanguageContext';
+import { useAuth } from '@/components/auth/AuthProvider';
 import { AGENTS } from '@/data/agents';
 import type { Property } from '@/lib/types';
 
@@ -15,12 +18,21 @@ function isSold(availability: string) {
 
 export function PropertyCard({ property: p, index = 0 }: { property: Property; index?: number }) {
   const { lang } = useLang();
+  const { user, openAuthModal } = useAuth();
   const displayName = lang === 'te' && p.nameLocal ? p.nameLocal : p.name;
   const sold = isSold(p.availability);
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (!user) {
+      e.preventDefault();
+      openAuthModal();
+    }
+  };
 
   return (
     <Link
       href={`/properties/${p.id}`}
+      onClick={handleClick}
       className={`group block bg-white rounded-2xl overflow-hidden border shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 fade-in ${sold ? 'border-gray-300 opacity-80' : 'border-gray-200'}`}
       style={{ animationDelay: `${index * 70}ms` }}
     >

@@ -129,8 +129,15 @@ export function AuthModal({ open, onClose }: Props) {
       otpTimerRef.current = setInterval(() => {
         setOtpResend((v) => { if (v <= 1) { clearInterval(otpTimerRef.current!); return 0; } return v - 1; });
       }, 1000);
-    } catch {
-      setMsg({ kind: 'err', text: 'Could not send OTP. Please check your number and try again.' });
+    } catch (err) {
+      const code = (err as { code?: string }).code ?? '';
+      let text = 'Could not send OTP. Please try again.';
+      if (code === 'auth/operation-not-allowed') text = 'Phone verification is being set up. Please register using email for now.';
+      else if (code === 'auth/invalid-phone-number') text = 'Invalid phone number. Please enter a valid 10-digit Indian mobile number.';
+      else if (code === 'auth/quota-exceeded') text = 'SMS limit reached. Please try again later.';
+      else if (code === 'auth/too-many-requests') text = 'Too many attempts. Please wait a few minutes and try again.';
+      else if (code === 'auth/captcha-check-failed') text = 'Security check failed. Please refresh the page and try again.';
+      setMsg({ kind: 'err', text });
     } finally { setOtpSending(false); }
   };
 

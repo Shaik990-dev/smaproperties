@@ -8,6 +8,7 @@ import { PropertyMap } from '@/components/property/PropertyMap';
 import { Badge } from '@/components/ui/Badge';
 import { breadcrumbJsonLd } from '@/lib/seo';
 import { ContactAgentPanel } from '@/components/property/ContactAgentPanel';
+import { PropertyDetailGate } from '@/components/property/PropertyDetailGate';
 import type { Property } from '@/lib/types';
 
 export const revalidate = 60;
@@ -138,6 +139,9 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }}
       />
+
+      {/* Auth gate — blocks page for unauthenticated users, content stays in DOM for SEO */}
+      <PropertyDetailGate />
 
       <div className="bg-gray-50 min-h-screen">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
