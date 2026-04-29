@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
-import { adminDb } from '@/lib/firebase-admin';
+import { adminAuth, adminDb } from '@/lib/firebase-admin';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -14,6 +14,18 @@ export async function POST(req: NextRequest) {
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json({ error: 'Invalid email address.' }, { status: 400 });
+    }
+
+    // Check if email is already registered
+    try {
+      await adminAuth.getUserByEmail(email);
+      return NextResponse.json(
+        { error: 'This email is already registered. Please sign in instead.' },
+        { status: 409 }
+      );
+    } catch (err) {
+      // auth/user-not-found means email is free — proceed
+      if ((err as { code?: string }).code !== 'auth/user-not-found') throw err;
     }
 
     const otp = String(Math.floor(100000 + Math.random() * 900000));
