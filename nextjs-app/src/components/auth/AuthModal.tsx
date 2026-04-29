@@ -127,6 +127,12 @@ export function AuthModal({ open, onClose }: Props) {
         body: JSON.stringify({ email, name }),
       });
       const data = await res.json() as { ok?: boolean; error?: string };
+      if (res.status === 409) {
+        // Email already registered — switch to Sign In tab
+        setMsg({ kind: 'err', text: data.error ?? 'Email already registered.' });
+        setTimeout(() => { switchTab('login'); }, 2200);
+        return;
+      }
       if (!res.ok) { setMsg({ kind: 'err', text: data.error ?? 'Could not send OTP. Please try again.' }); return; }
       setOtpStage('verify');
       setOtpResend(60);
@@ -158,7 +164,13 @@ export function AuthModal({ open, onClose }: Props) {
       setMsg({ kind: 'ok', text: '✅ Email verified! Account created successfully.' });
       setTimeout(handleClose, 900);
     } catch (err) {
-      setMsg({ kind: 'err', text: friendlyAuthError(err) });
+      const code = (err as { code?: string }).code ?? '';
+      if (code === 'auth/email-already-in-use') {
+        setMsg({ kind: 'err', text: 'This email is already registered. Switching to Sign In…' });
+        setTimeout(() => { switchTab('login'); }, 2200);
+      } else {
+        setMsg({ kind: 'err', text: friendlyAuthError(err) });
+      }
     } finally { setLoading(false); }
   };
   const switchTab = (t: Tab) => { setMsg(null); setTab(t); };
