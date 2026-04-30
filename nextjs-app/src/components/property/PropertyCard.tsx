@@ -6,7 +6,7 @@ import { MapPin, ArrowRight, CheckCircle, XCircle, Phone } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { FavoriteButton } from './FavoriteButton';
 import { CompareButton } from './CompareButton';
-import { useLang } from '@/components/layout/LanguageContext';
+import { useLang, type Lang } from '@/components/layout/LanguageContext';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { AGENTS } from '@/data/agents';
 import type { Property } from '@/lib/types';
@@ -14,6 +14,19 @@ import type { Property } from '@/lib/types';
 function isSold(availability: string) {
   const a = availability.toLowerCase();
   return a.includes('sold') || a.includes('not available') || a.includes('unavailable') || a.includes('closed');
+}
+
+const TYPE_LABEL: Record<string, Record<Lang, string>> = {
+  plot:         { en: 'Layout',       te: 'లేఅవుట్',    ta: 'தளவமைப்பு' },
+  flat:         { en: 'Flats',        te: 'ఫ్లాట్లు',   ta: 'குடியிருப்புகள்' },
+  house:        { en: 'Residential',  te: 'నివాస',       ta: 'குடியிருப்பு' },
+  agricultural: { en: 'Agricultural', te: 'వ్యవసాయ',    ta: 'விவசாயம்' },
+};
+
+function localTypeLabel(type: string, lang: Lang): string {
+  const map = TYPE_LABEL[type];
+  if (!map) return type;
+  return lang === 'en' ? map.en : `${map.en} / ${map[lang]}`;
 }
 
 export function PropertyCard({ property: p, index = 0 }: { property: Property; index?: number }) {
@@ -73,7 +86,7 @@ export function PropertyCard({ property: p, index = 0 }: { property: Property; i
       {/* Body */}
       <div className="p-5">
         <div className="text-xs text-[var(--color-teal)] font-bold uppercase tracking-wide mb-1">
-          {p.typeLabel}
+          {localTypeLabel(p.type, lang)}
         </div>
         <h3 className="font-bold text-gray-900 text-lg leading-snug line-clamp-2">
           {displayName}

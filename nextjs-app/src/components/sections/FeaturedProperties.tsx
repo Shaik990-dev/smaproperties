@@ -12,8 +12,12 @@ export function FeaturedProperties() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchProperties().then((p) => {
-      setProps(p);
+    fetchProperties().then((all) => {
+      const available = all.filter((p) => {
+        const a = p.availability.toLowerCase();
+        return !a.includes('sold') && !a.includes('not available') && !a.includes('unavailable') && !a.includes('closed');
+      });
+      setProps(available);
       setLoading(false);
     });
   }, []);
