@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/Badge';
 import { breadcrumbJsonLd } from '@/lib/seo';
 import { ContactAgentPanel } from '@/components/property/ContactAgentPanel';
 import { PropertyDetailGate } from '@/components/property/PropertyDetailGate';
+import { PropertyViewCounter } from '@/components/property/PropertyViewCounter';
 import type { Property } from '@/lib/types';
 
 export const revalidate = 60;
@@ -187,19 +188,22 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                   <span>{p.address}</span>
                 </div>
 
-                {(() => {
-                  const a = p.availability.toLowerCase();
-                  const sold = a.includes('sold') || a.includes('not available') || a.includes('unavailable') || a.includes('closed');
-                  return sold ? (
-                    <div className="inline-flex items-center gap-1 mt-3 text-sm font-bold text-red-700 bg-red-50 px-3 py-1.5 rounded-full">
-                      <XCircle size={14} /> {p.availability}
-                    </div>
-                  ) : (
-                    <div className="inline-flex items-center gap-1 mt-3 text-sm font-bold text-green-700 bg-green-50 px-3 py-1.5 rounded-full">
-                      <CheckCircle size={14} /> {p.availability}
-                    </div>
-                  );
-                })()}
+                <div className="flex flex-wrap items-center gap-2 mt-3">
+                  {(() => {
+                    const a = p.availability.toLowerCase();
+                    const sold = a.includes('sold') || a.includes('not available') || a.includes('unavailable') || a.includes('closed');
+                    return sold ? (
+                      <div className="inline-flex items-center gap-1 text-sm font-bold text-red-700 bg-red-50 px-3 py-1.5 rounded-full">
+                        <XCircle size={14} /> {p.availability}
+                      </div>
+                    ) : (
+                      <div className="inline-flex items-center gap-1 text-sm font-bold text-green-700 bg-green-50 px-3 py-1.5 rounded-full">
+                        <CheckCircle size={14} /> {p.availability}
+                      </div>
+                    );
+                  })()}
+                  <PropertyViewCounter propertyId={p.id} />
+                </div>
 
                 <div className="flex flex-wrap gap-2 mt-5">
                   {p.tags.map((t) => (
