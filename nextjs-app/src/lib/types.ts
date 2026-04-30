@@ -10,7 +10,6 @@ export interface Property {
   id: string;
   name: string;
   nameLocal?: string;
-  nameLocalTa?: string;
   type: PropertyType;
   typeLabel: string;
   badge?: string;

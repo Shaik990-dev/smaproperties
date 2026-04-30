@@ -6,7 +6,6 @@ import { ChevronDown } from 'lucide-react';
 const LANGS: { value: Lang; label: string; flag: string }[] = [
   { value: 'en', label: 'English', flag: '🇬🇧' },
   { value: 'te', label: 'తెలుగు', flag: '🇮🇳' },
-  { value: 'ta', label: 'தமிழ்', flag: '🇮🇳' },
 ];
 
 export function LanguageToggle() {

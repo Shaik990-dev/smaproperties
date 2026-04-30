@@ -17,10 +17,10 @@ function isSold(availability: string) {
 }
 
 const TYPE_LABEL: Record<string, Record<Lang, string>> = {
-  plot:         { en: 'Layout',       te: 'లేఅవుట్',    ta: 'தளவமைப்பு' },
-  flat:         { en: 'Flats',        te: 'ఫ్లాట్లు',   ta: 'குடியிருப்புகள்' },
-  house:        { en: 'Residential',  te: 'నివాస',       ta: 'குடியிருப்பு' },
-  agricultural: { en: 'Agricultural', te: 'వ్యవసాయ',    ta: 'விவசாயம்' },
+  plot:         { en: 'Layout',       te: 'లేఅవుట్' },
+  flat:         { en: 'Flats',        te: 'ఫ్లాట్లు' },
+  house:        { en: 'Residential',  te: 'నివాస' },
+  agricultural: { en: 'Agricultural', te: 'వ్యవసాయ' },
 };
 
 function localTypeLabel(type: string, lang: Lang): string {
@@ -32,10 +32,7 @@ function localTypeLabel(type: string, lang: Lang): string {
 export function PropertyCard({ property: p, index = 0 }: { property: Property; index?: number }) {
   const { lang } = useLang();
   const { user, openAuthModal } = useAuth();
-  const displayName =
-    lang === 'te' && p.nameLocal ? p.nameLocal :
-    lang === 'ta' && p.nameLocalTa ? p.nameLocalTa :
-    p.name;
+  const displayName = lang === 'te' && p.nameLocal ? p.nameLocal : p.name;
   const sold = isSold(p.availability);
 
   const handleClick = (e: React.MouseEvent) => {
