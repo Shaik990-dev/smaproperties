@@ -32,7 +32,10 @@ function localTypeLabel(type: string, lang: Lang): string {
 export function PropertyCard({ property: p, index = 0 }: { property: Property; index?: number }) {
   const { lang } = useLang();
   const { user, openAuthModal } = useAuth();
-  const displayName = lang === 'te' && p.nameLocal ? p.nameLocal : p.name;
+  const displayName =
+    lang === 'te' && p.nameLocal ? p.nameLocal :
+    lang === 'ta' && p.nameLocalTa ? p.nameLocalTa :
+    p.name;
   const sold = isSold(p.availability);
 
   const handleClick = (e: React.MouseEvent) => {

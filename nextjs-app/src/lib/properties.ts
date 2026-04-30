@@ -16,7 +16,11 @@ export async function fetchProperties(): Promise<Property[]> {
     );
     if (!snap.exists()) return DEFAULT_PROPERTIES.filter((p) => !deletedSet.has(p.id));
     const data = snap.val() as Record<string, Property>;
-    const fromDb = Object.values(data);
+    const fromDb = Object.values(data).map((p) => {
+      const def = DEFAULT_PROPERTIES.find((d) => d.id === p.id);
+      // Restore nameLocal if Firebase version lost it
+      return def?.nameLocal && !p.nameLocal ? { ...p, nameLocal: def.nameLocal } : p;
+    });
     if (!fromDb.length) return DEFAULT_PROPERTIES.filter((p) => !deletedSet.has(p.id));
     const dbIds = new Set(fromDb.map((p) => p.id));
     const missing = DEFAULT_PROPERTIES.filter((p) => !dbIds.has(p.id) && !deletedSet.has(p.id));
@@ -30,7 +34,13 @@ export async function fetchProperties(): Promise<Property[]> {
 export async function fetchProperty(id: string): Promise<Property | null> {
   try {
     const snap = await get(ref(db, `properties/${id}`));
-    if (snap.exists()) return snap.val() as Property;
+    if (snap.exists()) {
+      const fromDb = snap.val() as Property;
+      const def = DEFAULT_PROPERTIES.find((p) => p.id === id);
+      // Restore nameLocal if Firebase version lost it (e.g. saved via admin without it)
+      if (def?.nameLocal && !fromDb.nameLocal) return { ...fromDb, nameLocal: def.nameLocal };
+      return fromDb;
+    }
   } catch {}
   return DEFAULT_PROPERTIES.find((p) => p.id === id) || null;
 }
