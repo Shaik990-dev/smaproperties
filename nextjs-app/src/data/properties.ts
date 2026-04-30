@@ -172,6 +172,33 @@ export const DEFAULT_PROPERTIES: Property[] = [
       { icon: '💰', label: 'Price', value: 'Contact for plot-wise pricing' }
     ],
     pics: ['https://images.unsplash.com/photo-1523741543316-beb7fc7023d8?w=1200&q=80']
+  },
+  {
+    id: 'p9',
+    name: 'Srinivasa Nagar Layout – Plot No. 40',
+    nameLocal: 'శ్రీనివాసనగర్ లేఅవుట్ – ప్లాట్ నం. 40',
+    type: 'plot',
+    typeLabel: 'Layout / లేఅవుట్',
+    badge: 'Available',
+    badgeColor: 'default',
+    bgColor: '#f0fdf4',
+    emoji: '🏘️',
+    address: 'Ramadhanu Kandriga Village, Venkatachalam Mandal, Nellore District, AP',
+    availability: 'Available',
+    tags: ['33⅓ Ankanams', 'West Facing', '33ft Layout Road', 'Venkatachalam Mandal', 'Clear Title'],
+    facing: 'West',
+    area: '33⅓ Ankanams (222.969 sq.m)',
+    details: [
+      { icon: '🏘️', label: 'Layout',     value: 'Srinivasa Nagar Layout' },
+      { icon: '🔢', label: 'Plot No.',    value: 'Plot No. 40' },
+      { icon: '📐', label: 'Area',        value: '33⅓ Ankanams (222.969 sq.m)' },
+      { icon: '🧭', label: 'Facing',      value: 'West (33ft Layout Road)' },
+      { icon: '📍', label: 'Location',    value: 'Ramadhanu Kandriga, Venkatachalam Mandal, Nellore' },
+      { icon: '🗺️', label: 'Survey Nos.', value: 'Survey No. 2210 & 2211' },
+      { icon: '🔲', label: 'Boundaries',  value: 'E: Plot 93 · S: Plot 41 · W: 33ft Road · N: Plot 39' },
+      { icon: '📜', label: 'Documents',   value: 'Clear Title – Registered Documents' },
+    ],
+    pics: ['https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80']
   }
 ];
 
