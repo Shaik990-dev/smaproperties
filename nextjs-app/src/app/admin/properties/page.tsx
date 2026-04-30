@@ -5,13 +5,13 @@ import Link from 'next/link';
 import { ArrowLeft, Plus, Edit3, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { fetchProperties, deleteProperty, markPropertyAvailability } from '@/lib/properties';
+import { PropertyForm } from '@/components/admin/PropertyForm';
+import type { Property } from '@/lib/types';
 
 function isSold(availability: string) {
   const a = availability.toLowerCase();
   return a.includes('sold') || a.includes('not available') || a.includes('unavailable') || a.includes('closed');
 }
-import { PropertyForm } from '@/components/admin/PropertyForm';
-import type { Property } from '@/lib/types';
 
 type Mode = { kind: 'list' } | { kind: 'edit'; property: Property } | { kind: 'new' };
 

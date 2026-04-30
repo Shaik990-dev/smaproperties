@@ -19,15 +19,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'OTP not found. Please request a new one.' }, { status: 400 });
     }
 
-    const data = snap.val() as { otp: string; expiresAt: number };
+    const data = snap.val() as { otp: string; expiresAt: number; attempts?: number };
 
     if (Date.now() > data.expiresAt) {
       await adminDb.ref(`emailOtps/${emailToKey(email)}`).remove();
       return NextResponse.json({ error: 'OTP expired. Please request a new one.' }, { status: 400 });
     }
 
+    const attempts = (data.attempts ?? 0) + 1;
     if (data.otp !== otp) {
-      return NextResponse.json({ error: 'Incorrect OTP. Please try again.' }, { status: 400 });
+      if (attempts >= 5) {
+        // Too many wrong guesses — invalidate OTP entirely
+        await adminDb.ref(`emailOtps/${emailToKey(email)}`).remove();
+        return NextResponse.json({ error: 'Too many wrong attempts. Please request a new OTP.' }, { status: 400 });
+      }
+      await adminDb.ref(`emailOtps/${emailToKey(email)}/attempts`).set(attempts);
+      return NextResponse.json({ error: `Incorrect OTP. ${5 - attempts} attempt${5 - attempts === 1 ? '' : 's'} left.` }, { status: 400 });
     }
 
     await adminDb.ref(`emailOtps/${emailToKey(email)}`).remove();

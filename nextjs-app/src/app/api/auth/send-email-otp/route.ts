@@ -28,6 +28,25 @@ export async function POST(req: NextRequest) {
       if ((err as { code?: string }).code !== 'auth/user-not-found') throw err;
     }
 
+    // Rate limiting: max 3 OTP sends per email per 10 minutes
+    const rlKey = `otpRateLimit/${emailToKey(email)}`;
+    const rlSnap = await adminDb.ref(rlKey).get();
+    const now = Date.now();
+    const rl = rlSnap.exists() ? (rlSnap.val() as { count: number; windowStart: number }) : { count: 0, windowStart: now };
+    if (now - rl.windowStart < 10 * 60 * 1000) {
+      if (rl.count >= 3) {
+        const retryAfterSec = Math.ceil((rl.windowStart + 10 * 60 * 1000 - now) / 1000);
+        return NextResponse.json(
+          { error: `Too many OTP requests. Please wait ${Math.ceil(retryAfterSec / 60)} minute(s) and try again.` },
+          { status: 429 }
+        );
+      }
+      await adminDb.ref(rlKey).set({ count: rl.count + 1, windowStart: rl.windowStart });
+    } else {
+      // Window expired — reset
+      await adminDb.ref(rlKey).set({ count: 1, windowStart: now });
+    }
+
     const otp = String(Math.floor(100000 + Math.random() * 900000));
     const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
 

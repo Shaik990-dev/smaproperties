@@ -5,31 +5,11 @@ import {
   signInWithEmailAndPassword,
   signOut as fbSignOut,
   updateProfile,
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-  type ConfirmationResult,
   type User as FirebaseUser
 } from 'firebase/auth';
 import { ref, set, get } from 'firebase/database';
 import { auth, db } from './firebase';
 import type { AppUser } from './types';
-
-export type { ConfirmationResult };
-
-let _recaptcha: RecaptchaVerifier | null = null;
-
-export async function sendPhoneOtp(phone: string, containerId: string): Promise<ConfirmationResult> {
-  if (!auth) throw new Error('Firebase auth not initialized');
-  if (_recaptcha) { try { _recaptcha.clear(); } catch {} _recaptcha = null; }
-  _recaptcha = new RecaptchaVerifier(auth, containerId, { size: 'invisible' });
-  return signInWithPhoneNumber(auth, `+91${phone}`, _recaptcha);
-}
-
-export async function verifyPhoneOtp(result: ConfirmationResult, otp: string): Promise<void> {
-  const cred = await result.confirm(otp);
-  // Remove the temporary phone-auth user — we use email/password auth
-  try { await cred.user.delete(); } catch {}
-}
 
 export async function registerUser(input: {
   name: string;
