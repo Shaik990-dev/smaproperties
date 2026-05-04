@@ -51,8 +51,8 @@ export async function POST(req: NextRequest) {
     if (outcome === 'too-many') {
       return NextResponse.json({ error: 'Too many wrong attempts. Please request a new OTP.' }, { status: 400 });
     }
-    if (typeof outcome === 'object') {
-      const left = outcome.attemptsLeft;
+    if (outcome !== 'ok') {
+      const left = (outcome as { attemptsLeft: number }).attemptsLeft;
       return NextResponse.json(
         { error: `Incorrect OTP. ${left} attempt${left === 1 ? '' : 's'} left.` },
         { status: 400 }
