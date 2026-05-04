@@ -1,3 +1,4 @@
+import { randomInt } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { adminAuth, adminDb } from '@/lib/firebase-admin';
@@ -28,26 +29,31 @@ export async function POST(req: NextRequest) {
       if ((err as { code?: string }).code !== 'auth/user-not-found') throw err;
     }
 
-    // Rate limiting: max 3 OTP sends per email per 10 minutes
+    // Rate limiting: max 3 OTP sends per email per 10 minutes (atomic transaction)
     const rlKey = `otpRateLimit/${emailToKey(email)}`;
-    const rlSnap = await adminDb.ref(rlKey).get();
-    const now = Date.now();
-    const rl = rlSnap.exists() ? (rlSnap.val() as { count: number; windowStart: number }) : { count: 0, windowStart: now };
-    if (now - rl.windowStart < 10 * 60 * 1000) {
-      if (rl.count >= 3) {
-        const retryAfterSec = Math.ceil((rl.windowStart + 10 * 60 * 1000 - now) / 1000);
-        return NextResponse.json(
-          { error: `Too many OTP requests. Please wait ${Math.ceil(retryAfterSec / 60)} minute(s) and try again.` },
-          { status: 429 }
-        );
+    let rateLimitWindowStart = 0;
+    const rlResult = await adminDb.ref(rlKey).transaction(
+      (current: { count: number; windowStart: number } | null) => {
+        const now = Date.now();
+        if (!current || now - current.windowStart >= 10 * 60 * 1000) {
+          return { count: 1, windowStart: now };
+        }
+        if (current.count >= 3) {
+          rateLimitWindowStart = current.windowStart;
+          return; // abort — over limit
+        }
+        return { count: current.count + 1, windowStart: current.windowStart };
       }
-      await adminDb.ref(rlKey).set({ count: rl.count + 1, windowStart: rl.windowStart });
-    } else {
-      // Window expired — reset
-      await adminDb.ref(rlKey).set({ count: 1, windowStart: now });
+    );
+    if (!rlResult.committed) {
+      const retryAfterSec = Math.ceil((rateLimitWindowStart + 10 * 60 * 1000 - Date.now()) / 1000);
+      return NextResponse.json(
+        { error: `Too many OTP requests. Please wait ${Math.ceil(retryAfterSec / 60)} minute(s) and try again.` },
+        { status: 429 }
+      );
     }
 
-    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const otp = String(randomInt(100000, 1000000));
     const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
 
     await adminDb.ref(`emailOtps/${emailToKey(email)}`).set({ otp, expiresAt });

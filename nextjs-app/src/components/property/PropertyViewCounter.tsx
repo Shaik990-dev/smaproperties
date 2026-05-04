@@ -22,7 +22,7 @@ export function PropertyViewCounter({ propertyId }: { propertyId: string }) {
   return (
     <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full">
       <Eye size={12} />
-      {count} {count === 1 ? 'person' : 'people'} viewed today
+      {count} people viewed today
     </span>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { ref, push, get, set } from 'firebase/database';
+import { ref, push, get, runTransaction } from 'firebase/database';
 import { db } from './firebase';
 
 export async function trackVisit(page: string) {
@@ -21,9 +21,7 @@ function todayKey() {
 
 export async function trackPropertyView(propertyId: string): Promise<void> {
   try {
-    const r = ref(db, `propertyViews/${propertyId}/${todayKey()}`);
-    const snap = await get(r);
-    await set(r, (snap.exists() ? (snap.val() as number) : 0) + 1);
+    await runTransaction(ref(db, `propertyViews/${propertyId}/${todayKey()}`), (current: number | null) => (current ?? 0) + 1);
   } catch {}
 }
 

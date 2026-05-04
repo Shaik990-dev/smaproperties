@@ -13,31 +13,51 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing email or OTP.' }, { status: 400 });
     }
 
-    const snap = await adminDb.ref(`emailOtps/${emailToKey(email)}`).get();
+    type OtpRecord = { otp: string; expiresAt: number; attempts?: number };
+    type Outcome = 'not-found' | 'expired' | 'too-many' | 'ok' | { attemptsLeft: number };
 
-    if (!snap.exists()) {
+    let outcome: Outcome = 'not-found';
+
+    await adminDb.ref(`emailOtps/${emailToKey(email)}`).transaction(
+      (current: OtpRecord | null) => {
+        if (!current) {
+          outcome = 'not-found';
+          return; // abort — no change
+        }
+        if (Date.now() > current.expiresAt) {
+          outcome = 'expired';
+          return null; // delete
+        }
+        const attempts = (current.attempts ?? 0) + 1;
+        if (current.otp !== otp) {
+          if (attempts >= 5) {
+            outcome = 'too-many';
+            return null; // delete
+          }
+          outcome = { attemptsLeft: 5 - attempts };
+          return { ...current, attempts };
+        }
+        outcome = 'ok';
+        return null; // delete on success
+      }
+    );
+
+    if (outcome === 'not-found') {
       return NextResponse.json({ error: 'OTP not found. Please request a new one.' }, { status: 400 });
     }
-
-    const data = snap.val() as { otp: string; expiresAt: number; attempts?: number };
-
-    if (Date.now() > data.expiresAt) {
-      await adminDb.ref(`emailOtps/${emailToKey(email)}`).remove();
+    if (outcome === 'expired') {
       return NextResponse.json({ error: 'OTP expired. Please request a new one.' }, { status: 400 });
     }
-
-    const attempts = (data.attempts ?? 0) + 1;
-    if (data.otp !== otp) {
-      if (attempts >= 5) {
-        // Too many wrong guesses — invalidate OTP entirely
-        await adminDb.ref(`emailOtps/${emailToKey(email)}`).remove();
-        return NextResponse.json({ error: 'Too many wrong attempts. Please request a new OTP.' }, { status: 400 });
-      }
-      await adminDb.ref(`emailOtps/${emailToKey(email)}/attempts`).set(attempts);
-      return NextResponse.json({ error: `Incorrect OTP. ${5 - attempts} attempt${5 - attempts === 1 ? '' : 's'} left.` }, { status: 400 });
+    if (outcome === 'too-many') {
+      return NextResponse.json({ error: 'Too many wrong attempts. Please request a new OTP.' }, { status: 400 });
     }
-
-    await adminDb.ref(`emailOtps/${emailToKey(email)}`).remove();
+    if (typeof outcome === 'object') {
+      const left = outcome.attemptsLeft;
+      return NextResponse.json(
+        { error: `Incorrect OTP. ${left} attempt${left === 1 ? '' : 's'} left.` },
+        { status: 400 }
+      );
+    }
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error('verify-email-otp error:', err);
