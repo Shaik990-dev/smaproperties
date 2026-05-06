@@ -8,25 +8,26 @@
     "   (do NOT copy this _README key — Firebase will reject it)",
     "3. Click Publish",
     "",
-    "WHAT THESE RULES DO:",
-    "- /properties: anyone can READ (so the public site works), only admins can WRITE",
-    "- /visitors:   anyone can WRITE a new visit (anonymous), only admins can READ the list",
-    "  (the public hero counter still works because count() goes through visitors-count below)",
-    "- /users:      each signed-in user can read/write their OWN profile; admins can read all",
-    "- /inquiries:  anyone can WRITE a new inquiry (lead capture), only admins can READ them",
+    "PATHS COVERED:",
+    "- /properties         public read; admin write",
+    "- /deletedProperties  admin read/write only",
+    "- /visitors           anyone write (page visit tracking); admin read",
+    "- /propertyViews      anyone read/write (view counter, non-sensitive)",
+    "- /users              owner read/write own node; admin read/write all",
+    "- /inquiries          anyone create new (contact form); admin read/update/delete",
+    "- /emailOtps          blocked from client (server-only via Admin SDK)",
+    "- /otpRateLimit       blocked from client (server-only via Admin SDK)",
     "",
     "ADMIN DETECTION:",
-    "Rules check root.child('users').child(auth.uid).child('isAdmin').val() === true",
-    "So you must set isAdmin: true on a user node BEFORE that user can perform admin writes.",
-    "",
-    "COMPATIBILITY:",
-    "These rules are designed for Firebase Authentication (UID-based).",
-    "If you have legacy users from the static site (keyed by sanitized email),",
-    "they will need to re-register before they can authenticate."
+    "Rules check root.child('users').child(auth.uid).child('isAdmin').val() === true"
   ],
   "rules": {
     "properties": {
       ".read": true,
+      ".write": "auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true"
+    },
+    "deletedProperties": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true",
       ".write": "auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true"
     },
     "visitors": {
@@ -34,6 +35,10 @@
       "$visit": {
         ".write": "!data.exists() && newData.hasChildren(['time'])"
       }
+    },
+    "propertyViews": {
+      ".read": true,
+      ".write": true
     },
     "users": {
       ".read": "auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true",
@@ -45,8 +50,16 @@
     "inquiries": {
       ".read": "auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true",
       "$id": {
-        ".write": "!data.exists() && newData.hasChildren(['name', 'phone', 'createdAt'])"
+        ".write": "(!data.exists() && newData.hasChildren(['name', 'phone', 'createdAt'])) || (auth != null && root.child('users').child(auth.uid).child('isAdmin').val() === true)"
       }
+    },
+    "emailOtps": {
+      ".read": false,
+      ".write": false
+    },
+    "otpRateLimit": {
+      ".read": false,
+      ".write": false
     }
   }
 }
