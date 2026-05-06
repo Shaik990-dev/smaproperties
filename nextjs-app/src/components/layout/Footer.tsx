@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { AGENTS, OFFICE } from '@/data/agents';
-import { MapPin, Phone, Clock, MessageCircle } from 'lucide-react';
+import { MapPin, Phone, Clock, MessageCircle, Mail } from 'lucide-react';
 import { waLink, telLink } from '@/lib/utils';
 
 export function Footer() {
@@ -57,6 +57,11 @@ export function Footer() {
                 </div>
               </li>
             ))}
+            <li className="pt-1">
+              <a href={`mailto:${OFFICE.email}`} className="flex items-center gap-2 text-white/70 hover:text-[var(--color-amber-light)]">
+                <Mail size={12} /> {OFFICE.email}
+              </a>
+            </li>
           </ul>
         </div>
       </div>

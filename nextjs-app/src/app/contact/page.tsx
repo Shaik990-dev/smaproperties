@@ -9,6 +9,7 @@ const localBusinessJsonLd = {
   name: 'SMA Builders & Real Estates',
   url: 'https://smaproperties.in',
   telephone: AGENTS.map((a) => `+91${a.phones[0]}`),
+  email: OFFICE.email,
   address: {
     '@type': 'PostalAddress',
     streetAddress: 'Near NTS Gate, Padugupadu',

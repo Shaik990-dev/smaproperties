@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { MapPin, Clock, Phone, MessageCircle } from 'lucide-react';
+import { MapPin, Clock, Phone, MessageCircle, Mail } from 'lucide-react';
 import { AGENTS, OFFICE } from '@/data/agents';
 import { waLink, telLink } from '@/lib/utils';
 import { saveInquiry } from '@/lib/inquiries';
@@ -95,6 +95,15 @@ export function Contact() {
                 <div>
                   <strong className="block text-gray-900">Working Hours</strong>
                   <span className="text-gray-600 text-sm">{OFFICE.hours}</span>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <Mail className="text-[var(--color-amber)] flex-shrink-0 mt-1" size={20} />
+                <div>
+                  <strong className="block text-gray-900">Email Support</strong>
+                  <a href={`mailto:${OFFICE.email}`} className="text-[var(--color-navy)] text-sm hover:underline">
+                    {OFFICE.email}
+                  </a>
                 </div>
               </div>
             </div>
